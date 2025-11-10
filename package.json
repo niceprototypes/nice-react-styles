@@ -1,0 +1,60 @@
+{
+  "name": "nice-react-styles",
+  "version": "1.0.0",
+  "description": "React provider component for nice-styles CSS variables",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "nice-styles": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0",
+    "react": "^18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "react",
+    "css",
+    "css-variables",
+    "custom-properties",
+    "design-tokens",
+    "design-system",
+    "theming",
+    "nice",
+    "provider",
+    "context"
+  ],
+  "author": "Mohammed Ibrahim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niceprototypes/nice-react-styles.git"
+  },
+  "bugs": {
+    "url": "https://github.com/niceprototypes/nice-react-styles/issues"
+  },
+  "homepage": "https://github.com/niceprototypes/nice-react-styles#readme"
+}
