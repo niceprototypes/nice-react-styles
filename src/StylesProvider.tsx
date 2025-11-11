@@ -1,28 +1,52 @@
 import { ReactNode } from 'react'
-import 'nice-styles'
+import { ThemeProvider } from 'styled-components'
+import { niceStylesTheme } from './theme'
+
+/**
+ * Available CSS token categories that can be selectively imported
+ */
+export type TokenCategory =
+  | 'animation'
+  | 'background-color'
+  | 'border-color'
+  | 'border-radius'
+  | 'border-width'
+  | 'box-shadow'
+  | 'cell-height'
+  | 'content-color'
+  | 'font-family'
+  | 'font-size'
+  | 'gap-size'
+  | 'icon-stroke-color'
+  | 'icon-stroke-width'
+  | 'inverse'
+  | 'line-height'
 
 /**
  * Props for the StylesProvider component
  */
 export interface StylesProviderProps {
   /**
-   * Child components that will have access to nice-styles CSS variables
+   * Child components that will have access to nice-styles theme and CSS variables
    */
   children: ReactNode
   /**
-   * Optional className to apply to the wrapper div
+   * Optional array of token categories to selectively import CSS variables for.
+   * If not specified, all CSS variables are imported.
+   *
+   * @example
+   * ```tsx
+   * <StylesProvider tokens={['font-family', 'font-size', 'content-color']}>
+   *   <App />
+   * </StylesProvider>
+   * ```
    */
-  className?: string
-  /**
-   * Optional style object to apply custom CSS variable overrides
-   */
-  style?: React.CSSProperties
+  tokens?: TokenCategory[]
 }
 
 /**
- * A wrapper component that ensures nice-styles CSS variables are available
- * in the component tree. This creates a scoped area where CSS variables
- * can be referenced.
+ * A wrapper component that provides nice-styles CSS variables and theme to the component tree.
+ * Uses styled-components ThemeProvider to make design tokens available via props.theme.
  *
  * @example
  * ```tsx
@@ -35,25 +59,27 @@ export interface StylesProviderProps {
  *     </StylesProvider>
  *   )
  * }
+ *
+ * // With selective token imports
+ * function App() {
+ *   return (
+ *     <StylesProvider tokens={['font-family', 'content-color']}>
+ *       <YourComponent />
+ *     </StylesProvider>
+ *   )
+ * }
  * ```
  */
-export function StylesProvider({
-  children,
-  className = '',
-  style
-}: StylesProviderProps) {
-  return (
-    <div
-      className={`nice-styles-provider ${className}`.trim()}
-      style={{
-        fontFamily: 'var(--font-family-body)',
-        color: 'var(--content-color-1)',
-        minHeight: '100vh',
-        width: '100%',
-        ...style
-      }}
-    >
-      {children}
-    </div>
-  )
+export function StylesProvider({ children, tokens }: StylesProviderProps) {
+  // Dynamically import CSS files based on tokens prop
+  if (tokens) {
+    tokens.forEach((token) => {
+      import(`nice-styles/static/css/${token}.css`)
+    })
+  } else {
+    // Import all CSS variables
+    import('nice-styles')
+  }
+
+  return <ThemeProvider theme={niceStylesTheme}>{children}</ThemeProvider>
 }
