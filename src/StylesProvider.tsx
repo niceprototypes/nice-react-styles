@@ -74,11 +74,13 @@ export function StylesProvider({ children, tokens }: StylesProviderProps) {
   // Dynamically import CSS files based on tokens prop
   if (tokens) {
     tokens.forEach((token) => {
+      // @ts-ignore - CSS import
       import(`nice-styles/static/css/${token}.css`)
     })
   } else {
     // Import all CSS variables
-    import('nice-styles')
+    // @ts-ignore - CSS import
+    import('nice-styles/css')
   }
 
   return <ThemeProvider theme={niceStylesTheme}>{children}</ThemeProvider>
