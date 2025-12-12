@@ -35,11 +35,11 @@ function MyComponent() {
   return (
     <div
       style={{
-        backgroundColor: 'var(--background-color-1)',
-        color: 'var(--content-color-1)',
-        padding: 'var(--gap-size-3)',
-        borderRadius: 'var(--border-radius-2)',
-        fontFamily: 'var(--font-family-body)',
+        backgroundColor: 'var(--background-color-base)',
+        color: 'var(--content-color-base)',
+        padding: 'var(--gap-size-medium)',
+        borderRadius: 'var(--border-radius-base)',
+        fontFamily: 'var(--font-family-base)',
       }}
     >
       Hello World
@@ -52,11 +52,11 @@ Or in CSS/styled-components:
 
 ```css
 .my-component {
-  background-color: var(--background-color-1);
-  color: var(--content-color-1);
-  padding: var(--gap-size-3);
-  border-radius: var(--border-radius-2);
-  font-family: var(--font-family-body);
+  background-color: var(--background-color-base);
+  color: var(--content-color-base);
+  padding: var(--gap-size-medium);
+  border-radius: var(--border-radius-base);
+  font-family: var(--font-family-base);
 }
 ```
 
