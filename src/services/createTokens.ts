@@ -1,45 +1,12 @@
 import { createGlobalStyle } from "styled-components"
 import type { ComponentType } from "react"
-import { getCssConstant } from "nice-styles"
-
-/**
- * Token definition following the nice-styles pattern
- * Each token has a CSS name and a map of variant keys to values
- */
-interface TokenDefinition {
-  name: string
-  items: Record<string, string>
-}
-
-/**
- * Token map structure matching nice-styles tokens.json format
- * Keys are camelCase token names, values are TokenDefinition objects
- */
-type TokenMap = Record<string, TokenDefinition>
-
-/**
- * Result object returned by the getToken function
- * Mirrors the structure of nice-styles getToken for consistency
- */
-export interface TokenResult {
-  /**
-   * The full CSS variable name without var() wrapper
-   * @example "--icon--stroke-width--small"
-   */
-  key: string
-
-  /**
-   * The CSS variable wrapped in var() for use in CSS
-   * @example "var(--icon--stroke-width--small)"
-   */
-  var: string
-
-  /**
-   * The raw token value as defined in the token map
-   * @example "1.5px"
-   */
-  value: string
-}
+import {
+  getCssConstant,
+  getTokenFromMap,
+  type TokenDefinition,
+  type TokenMap,
+  type TokenResult,
+} from "nice-styles"
 
 /**
  * Extracts variant keys from a TokenDefinition's items
@@ -150,7 +117,7 @@ export function createTokens<T extends TokenMap>(
     const { name, items } = definition
     for (const [variant, value] of Object.entries(items)) {
       const cssVar = getCssConstant(component, name, variant)
-      flatTokenMap[cssVar.key] = value
+      flatTokenMap[cssVar.key] = String(value)
     }
   }
 
@@ -166,37 +133,12 @@ export function createTokens<T extends TokenMap>(
     }
   `
 
-  // Create typed getter function
+  // Create typed getter function using nice-styles helper
   const getToken = <K extends keyof T, V extends VariantKeys<T[K]>>(
     tokenName: K,
     variant?: V
   ): TokenResult => {
-    const definition = tokenMap[tokenName]
-    if (!definition) {
-      throw new Error(
-        `Token "${String(tokenName)}" not found in ${component} tokens. ` +
-        `Available tokens: ${Object.keys(tokenMap).join(", ")}`
-      )
-    }
-
-    // If no variant provided, use "base" as default
-    const variantKey = (variant ?? "base") as string
-    const value = definition.items[variantKey]
-
-    if (value === undefined) {
-      throw new Error(
-        `Variant "${variantKey}" not found for token "${String(tokenName)}" in ${component} tokens. ` +
-        `Available variants: ${Object.keys(definition.items).join(", ")}`
-      )
-    }
-
-    const cssVar = getCssConstant(component, definition.name, variantKey)
-
-    return {
-      key: cssVar.key,
-      var: cssVar.var,
-      value,
-    }
+    return getTokenFromMap(component, tokenMap, tokenName as string, variant as string | undefined)
   }
 
   return { GlobalStyles, getComponentToken: getToken as GetComponentTokenFn<T> }

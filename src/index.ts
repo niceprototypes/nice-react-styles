@@ -8,9 +8,9 @@ export { StylesProvider } from './components/StylesProvider'
 // Service exports
 export { createTokens } from './services/createTokens'
 
-// Re-export getToken from nice-styles for convenience
-export { getToken } from 'nice-styles'
+// Re-export from nice-styles for convenience
+export { getToken, getTokenFromMap } from 'nice-styles'
+export type { TokenResult, TokenDefinition, TokenMap } from 'nice-styles'
 
 // Type exports
-export type { TokenResult } from './services/createTokens'
 export type { StylesProviderProps, GoogleFontsConfig } from './components/StylesProvider/types'
