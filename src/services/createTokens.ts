@@ -1,17 +1,19 @@
 import { createGlobalStyle } from "styled-components"
 import type { ComponentType } from "react"
 import {
+  camelToKebab,
   getCssConstant,
   getTokenFromMap,
+  Theme,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
 } from "nice-styles"
 
 /**
- * Extracts variant keys from a TokenDefinition's items
+ * Extracts variant keys from a TokenDefinition
  */
-type VariantKeys<T extends TokenDefinition> = keyof T["items"]
+type VariantKeys<T extends TokenDefinition> = keyof T
 
 /**
  * Typed getComponentToken function that accepts token name and variant
@@ -28,7 +30,7 @@ type GetComponentTokenFn<T extends TokenMap> = <
  * Return type of createTokens
  * Provides both GlobalStyles injection and typed programmatic access to tokens
  */
-interface ComponentTokens<T extends TokenMap> {
+export interface ComponentTokens<T extends TokenMap> {
   /**
    * GlobalStyles component that injects CSS custom properties on :root
    * Pass to StylesProvider's componentStyles prop
@@ -64,59 +66,57 @@ interface ComponentTokens<T extends TokenMap> {
  * Creates component-level CSS custom property tokens with a GlobalStyles component
  * for injection via StylesProvider and a typed getter function for programmatic access.
  *
- * Token structure mirrors nice-styles tokens.json format:
- * - Keys are camelCase token names
- * - Values have `name` (CSS name) and `items` (variant → value map)
+ * When using the default "app" prefix, tokens that exist in the core nice-styles theme
+ * are automatically treated as overrides and use the "core" prefix. Custom tokens use "app".
+ * When a specific prefix is provided (e.g., "button", "icon"), all tokens use that prefix.
  *
- * @param component - Component prefix for CSS variable names (e.g., "icon", "button")
- * @param tokenMap - Object mapping token names to their definitions
+ * Token structure:
+ * - Keys are camelCase token names (auto-converted to kebab-case for CSS)
+ * - Values are variant → value mappings
+ *
+ * @param tokenMap - Object mapping token names to variant → value objects
+ * @param prefix - Optional prefix for CSS variable names (defaults to "app").
+ *                 When "app", core token names are auto-detected as overrides using "core" prefix.
+ *                 When a specific prefix is provided, all tokens use that prefix.
  *
  * @returns ComponentTokens object containing:
  *          - GlobalStyles: Component for injection via StylesProvider
  *          - getComponentToken: Typed accessor function for retrieving token values
  *
  * @example
- * // Define component tokens (e.g., Icon.tokens.ts)
- * import { createTokens } from "nice-react-styles"
- *
- * const IconTokenMap = {
- *   strokeWidth: {
- *     name: "stroke-width",
- *     items: {
- *       small: "1px",
- *       base: "1.5px",
- *       large: "8px",
- *     }
+ * const AppTokenMap = {
+ *   // Override token (exists in core) - uses "core" prefix
+ *   fontSize: {
+ *     base: "20px",
+ *     larger: "40px",
  *   },
- *   spinningAnimationDuration: {
- *     name: "spinning-animation-duration",
- *     items: {
- *       base: "750ms",
- *     }
- *   }
+ *   // Custom token (not in core) - uses provided prefix or "app"
+ *   brandColor: {
+ *     primary: "#dc0000",
+ *   },
  * } as const
  *
- * export const { GlobalStyles: IconStyles, getComponentToken: getIconToken } = createTokens("icon", IconTokenMap)
- *
- * @example
- * // Use typed getComponentToken in styled-components
- * import { getIconToken } from "./tokens"
- *
- * const IconWrapper = styled.div`
- *   stroke-width: ${getIconToken("strokeWidth", "base").var};
- * `
+ * export const { GlobalStyles, getComponentToken } = createTokens(AppTokenMap)
  */
 export function createTokens<T extends TokenMap>(
-  component: string,
-  tokenMap: T
+  tokenMap: T,
+  prefix: string = "app"
 ): ComponentTokens<T> {
   // Build flattened CSS variable map using standardized format: --{pkg}--{token}--{param}
+  // When using default "app" prefix, tokens that exist in core Theme are treated as overrides
+  // and use "core" prefix. When a specific prefix is provided, all tokens use that prefix.
   const flatTokenMap: Record<string, string> = {}
+  const tokenPrefixMap: Record<string, string> = {}
+  const useAutoOverride = prefix === "app"
 
-  for (const [_tokenName, definition] of Object.entries(tokenMap)) {
-    const { name, items } = definition
-    for (const [variant, value] of Object.entries(items)) {
-      const cssVar = getCssConstant(component, name, variant)
+  for (const [tokenKey, variants] of Object.entries(tokenMap)) {
+    const isOverride = useAutoOverride && tokenKey in Theme
+    const tokenPrefix = isOverride ? "core" : prefix
+    tokenPrefixMap[tokenKey] = tokenPrefix
+
+    const cssName = camelToKebab(tokenKey)
+    for (const [variant, value] of Object.entries(variants)) {
+      const cssVar = getCssConstant(tokenPrefix, cssName, variant)
       flatTokenMap[cssVar.key] = String(value)
     }
   }
@@ -138,7 +138,8 @@ export function createTokens<T extends TokenMap>(
     tokenName: K,
     variant?: V
   ): TokenResult => {
-    return getTokenFromMap(component, tokenMap, tokenName as string, variant as string | undefined)
+    const tokenPrefix = tokenPrefixMap[tokenName as string] ?? prefix
+    return getTokenFromMap(tokenPrefix, tokenMap, tokenName as string, variant as string | undefined)
   }
 
   return { GlobalStyles, getComponentToken: getToken as GetComponentTokenFn<T> }

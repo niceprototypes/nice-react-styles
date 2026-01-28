@@ -7,6 +7,7 @@ export { StylesProvider } from './components/StylesProvider'
 
 // Service exports
 export { createTokens } from './services/createTokens'
+export type { ComponentTokens } from './services/createTokens'
 
 // Re-export from nice-styles for convenience
 export { getToken, getTokenFromMap } from 'nice-styles'
