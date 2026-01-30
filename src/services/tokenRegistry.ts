@@ -26,18 +26,26 @@ for (const [name, variants] of Object.entries(Theme)) {
 }
 
 /**
+ * Check if a token definition uses the legacy name/items format
+ */
+function isLegacyFormat(def: unknown): def is { name: string; items: TokenDefinition } {
+  return typeof def === 'object' && def !== null && 'name' in def && 'items' in def
+}
+
+/**
  * Register custom tokens into the unified registry.
  *
  * - Token names that exist in core Theme use "core" prefix (value override)
  * - Custom token names use the provided prefix
+ * - When overriding existing tokens, variants are MERGED (not replaced)
  *
  * @param tokenMap - Object mapping token names to variant → value objects
  * @param prefix - CSS variable prefix for custom tokens (default: "app")
  *
  * @example
- * // Override core fontSize
+ * // Override core fontSize (merges with existing variants)
  * registerTokens({ fontSize: { base: "18px" } })
- * // → --core--font-size--base: 18px
+ * // → --core--font-size--base: 18px (other variants preserved)
  *
  * @example
  * // Add custom token
@@ -49,7 +57,22 @@ export function registerTokens(tokenMap: TokenMap, prefix = "app"): void {
     // Core token names keep "core" prefix (override values only)
     // Custom token names use the provided prefix
     const effectivePrefix = name in Theme ? "core" : prefix
-    registry.set(name, { prefix: effectivePrefix, variants })
+
+    // Merge with existing variants if token already exists
+    const existing = registry.get(name)
+    let mergedVariants: TokenDefinition
+
+    if (existing) {
+      // Extract variants from existing entry (handle legacy format from Theme)
+      const existingVariants = isLegacyFormat(existing.variants)
+        ? existing.variants.items
+        : existing.variants
+      mergedVariants = { ...existingVariants, ...variants }
+    } else {
+      mergedVariants = variants
+    }
+
+    registry.set(name, { prefix: effectivePrefix, variants: mergedVariants })
   }
 }
 
