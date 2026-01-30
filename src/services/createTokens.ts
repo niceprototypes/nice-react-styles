@@ -3,7 +3,6 @@ import type { ComponentType } from "react"
 import {
   camelToKebab,
   getCssConstant,
-  Theme,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
@@ -62,13 +61,8 @@ export interface ComponentTokens<T extends TokenMap> {
  * - Keys are camelCase token names (auto-converted to kebab-case for CSS)
  * - Values are variant → value mappings
  *
- * Core token names (matching nice-styles Theme) use "core" prefix regardless of
- * the prefix parameter. This allows value overrides while maintaining consistent
- * CSS variable names.
- *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - Prefix for custom token CSS variables (default: "app").
- *                 Core token overrides always use "core" prefix.
+ * @param prefix - Prefix for CSS variables (default: "app")
  *
  * @returns ComponentTokens object containing:
  *          - GlobalStyles: Component for injection via StylesProvider
@@ -77,21 +71,22 @@ export interface ComponentTokens<T extends TokenMap> {
  * @example
  * // App-level tokens
  * const AppTokenMap = {
- *   fontSize: { base: "18px" },       // overrides core → --core--font-size--base
- *   brandColor: { primary: "#f00" },  // custom → --app--brand-color--primary
+ *   brandColor: { primary: "#f00" },
  * } as const
  * export const { GlobalStyles } = createTokens(AppTokenMap)
- *
- * // Access tokens via unified getToken (import separately)
- * import { getToken } from "nice-react-styles"
- * getToken("fontSize", "base")    // works (core override)
- * getToken("brandColor", "primary") // works (custom)
+ * // → --app--brand-color--primary
  *
  * @example
  * // Namespaced component tokens
  * const ButtonTokenMap = { height: { small: "32px", base: "48px" } } as const
  * export const { GlobalStyles } = createTokens(ButtonTokenMap, "button")
  * // → --button--height--small, --button--height--base
+ *
+ * @example
+ * // Override core tokens (explicitly use "core" prefix)
+ * const CoreOverrides = { fontSize: { base: "18px" } } as const
+ * export const { GlobalStyles } = createTokens(CoreOverrides, "core")
+ * // → --core--font-size--base: 18px
  */
 export function createTokens<T extends TokenMap>(
   tokenMap: T,
@@ -105,10 +100,8 @@ export function createTokens<T extends TokenMap>(
 
   for (const [tokenKey, variants] of Object.entries(tokenMap)) {
     const cssName = camelToKebab(tokenKey)
-    // Core token names use "core" prefix, custom tokens use provided prefix
-    const effectivePrefix = tokenKey in Theme ? "core" : prefix
     for (const [variant, value] of Object.entries(variants)) {
-      const cssVar = getCssConstant(effectivePrefix, cssName, variant)
+      const cssVar = getCssConstant(prefix, cssName, variant)
       flatTokenMap[cssVar.key] = String(value)
     }
   }

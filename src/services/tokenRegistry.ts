@@ -54,10 +54,6 @@ function isLegacyFormat(def: unknown): def is { name: string; items: TokenDefini
  */
 export function registerTokens(tokenMap: TokenMap, prefix = "app"): void {
   for (const [name, variants] of Object.entries(tokenMap)) {
-    // Core token names keep "core" prefix (override values only)
-    // Custom token names use the provided prefix
-    const effectivePrefix = name in Theme ? "core" : prefix
-
     // Merge with existing variants if token already exists
     const existing = registry.get(name)
     let mergedVariants: TokenDefinition
@@ -72,7 +68,7 @@ export function registerTokens(tokenMap: TokenMap, prefix = "app"): void {
       mergedVariants = variants
     }
 
-    registry.set(name, { prefix: effectivePrefix, variants: mergedVariants })
+    registry.set(name, { prefix, variants: mergedVariants })
   }
 }
 
