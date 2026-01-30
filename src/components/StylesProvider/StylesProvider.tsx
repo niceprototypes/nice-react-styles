@@ -3,7 +3,6 @@
  *
  * A wrapper component that provides nice-styles CSS variables and theme to the component tree.
  * Uses styled-components ThemeProvider to make design tokens available via props.theme.
- * Includes both current and deprecated CSS variables for backward compatibility.
  */
 
 import { useMemo } from 'react'
@@ -14,7 +13,6 @@ import { ThemeProvider } from './styled'
 import type { StylesProviderProps, GoogleFontsConfig } from './types'
 import type { LinkAttributes } from '../FontLoader/types'
 import 'nice-styles/variables.css'
-import 'nice-styles/deprecated.css'
 
 /**
  * Default Google Sans Flex configuration

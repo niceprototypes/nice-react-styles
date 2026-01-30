@@ -30,7 +30,6 @@ export default [
       "styled-components",
       "nice-styles",
       "nice-styles/variables.css",
-      "nice-styles/deprecated.css",
     ],
   },
   {
