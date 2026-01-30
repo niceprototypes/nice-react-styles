@@ -7,7 +7,7 @@ import {
   type TokenMap,
   type TokenResult,
 } from "nice-styles"
-import { registerTokens, getToken as registryGetToken } from "./tokenRegistry"
+import { registerTokens, getToken as registryGetToken, DEFAULT_PREFIX } from "./tokenRegistry"
 
 /**
  * Extracts variant keys from a TokenDefinition
@@ -62,35 +62,29 @@ export interface ComponentTokens<T extends TokenMap> {
  * - Values are variant → value mappings
  *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - Prefix for CSS variables (default: "app")
+ * @param prefix - Prefix for CSS variables (default: "core")
  *
  * @returns ComponentTokens object containing:
  *          - GlobalStyles: Component for injection via StylesProvider
  *          - getToken: Reference to unified token accessor (for backwards compatibility)
  *
  * @example
- * // App-level tokens
+ * // App-level tokens (default "core" prefix)
  * const AppTokenMap = {
- *   brandColor: { primary: "#f00" },
+ *   fontSize: { base: "20px" },       // → --core--font-size--base: 20px
+ *   brandColor: { primary: "#f00" },  // → --core--brand-color--primary: #f00
  * } as const
  * export const { GlobalStyles } = createTokens(AppTokenMap)
- * // → --app--brand-color--primary
  *
  * @example
- * // Namespaced component tokens
+ * // Namespaced component tokens (explicit prefix)
  * const ButtonTokenMap = { height: { small: "32px", base: "48px" } } as const
  * export const { GlobalStyles } = createTokens(ButtonTokenMap, "button")
  * // → --button--height--small, --button--height--base
- *
- * @example
- * // Override core tokens (explicitly use "core" prefix)
- * const CoreOverrides = { fontSize: { base: "18px" } } as const
- * export const { GlobalStyles } = createTokens(CoreOverrides, "core")
- * // → --core--font-size--base: 18px
  */
 export function createTokens<T extends TokenMap>(
   tokenMap: T,
-  prefix: string = "app"
+  prefix: string = DEFAULT_PREFIX
 ): ComponentTokens<T> {
   // Register tokens in the unified registry
   registerTokens(tokenMap, prefix)

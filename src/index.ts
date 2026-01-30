@@ -10,7 +10,7 @@ export { createTokens } from './services/createTokens'
 export type { ComponentTokens } from './services/createTokens'
 
 // Token registry - unified token access
-export { getToken, registerTokens, hasToken, getTokenNames } from './services/tokenRegistry'
+export { getToken, registerTokens, hasToken, getTokenNames, DEFAULT_PREFIX } from './services/tokenRegistry'
 
 // Re-export from nice-styles for convenience (low-level utilities)
 export { getTokenFromMap } from 'nice-styles'

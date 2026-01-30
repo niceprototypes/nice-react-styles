@@ -7,6 +7,11 @@ import {
 } from "nice-styles"
 
 /**
+ * Default prefix for core design tokens
+ */
+export const DEFAULT_PREFIX = "core"
+
+/**
  * Registry entry storing token variants and their CSS prefix
  */
 interface RegistryEntry {
@@ -22,7 +27,7 @@ const registry = new Map<string, RegistryEntry>()
 
 // Initialize registry with core tokens
 for (const [name, variants] of Object.entries(Theme)) {
-  registry.set(name, { prefix: "core", variants: variants as TokenDefinition })
+  registry.set(name, { prefix: DEFAULT_PREFIX, variants: variants as TokenDefinition })
 }
 
 /**
@@ -33,14 +38,12 @@ function isLegacyFormat(def: unknown): def is { name: string; items: TokenDefini
 }
 
 /**
- * Register custom tokens into the unified registry.
+ * Register tokens into the unified registry.
  *
- * - Token names that exist in core Theme use "core" prefix (value override)
- * - Custom token names use the provided prefix
- * - When overriding existing tokens, variants are MERGED (not replaced)
+ * When overriding existing tokens, variants are MERGED (not replaced).
  *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - CSS variable prefix for custom tokens (default: "app")
+ * @param prefix - CSS variable prefix (default: "core")
  *
  * @example
  * // Override core fontSize (merges with existing variants)
@@ -48,11 +51,11 @@ function isLegacyFormat(def: unknown): def is { name: string; items: TokenDefini
  * // → --core--font-size--base: 18px (other variants preserved)
  *
  * @example
- * // Add custom token
- * registerTokens({ brandColor: { primary: "#f00" } })
+ * // Add custom token with explicit prefix
+ * registerTokens({ brandColor: { primary: "#f00" } }, "app")
  * // → --app--brand-color--primary: #f00
  */
-export function registerTokens(tokenMap: TokenMap, prefix = "app"): void {
+export function registerTokens(tokenMap: TokenMap, prefix = DEFAULT_PREFIX): void {
   for (const [name, variants] of Object.entries(tokenMap)) {
     // Merge with existing variants if token already exists
     const existing = registry.get(name)
