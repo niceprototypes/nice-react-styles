@@ -16,15 +16,13 @@ import {
 type VariantKeys<T extends TokenDefinition> = keyof T
 
 /**
- * Typed getComponentToken function that accepts token name and variant
+ * Typed getToken function that accepts token name and variant.
+ * Supports both custom tokens (fully typed) and core token fallback.
  */
-type GetComponentTokenFn<T extends TokenMap> = <
-  K extends keyof T,
-  V extends VariantKeys<T[K]>
->(
-  tokenName: K,
-  variant?: V
-) => TokenResult
+type GetTokenFn<T extends TokenMap> = {
+  <K extends keyof T, V extends VariantKeys<T[K]>>(tokenName: K, variant?: V): TokenResult
+  (tokenName: string, variant?: string): TokenResult
+}
 
 /**
  * Return type of createTokens
@@ -43,104 +41,99 @@ export interface ComponentTokens<T extends TokenMap> {
   GlobalStyles: ComponentType
 
   /**
-   * Typed accessor function to get individual component token values
-   * Accepts token name and optional variant
+   * Typed accessor function to get token values.
+   * First checks the custom token map, then falls back to core tokens.
    *
-   * @param tokenName - The camelCase token name (e.g., "strokeWidth")
+   * @param tokenName - The camelCase token name (e.g., "strokeWidth", "fontSize")
    * @param variant - The variant key (e.g., "small", "base", "large")
    * @returns TokenResult with key, var, and value properties
-   * @throws Error if token or variant is not found
+   * @throws Error if token or variant is not found in custom or core tokens
    *
    * @example
-   * getComponentToken("strokeWidth", "base")
+   * getToken("strokeWidth", "base")
    * // Returns: {
    * //   key: "--icon--stroke-width--base",
    * //   var: "var(--icon--stroke-width--base)",
    * //   value: "1.5px"
    * // }
    */
-  getComponentToken: GetComponentTokenFn<T>
+  getToken: GetTokenFn<T>
 }
 
 /**
- * Creates component-level CSS custom property tokens with a GlobalStyles component
- * for injection via StylesProvider and a typed getter function for programmatic access.
+ * Creates CSS custom property tokens with a GlobalStyles component for injection
+ * via StylesProvider and a typed getter function for programmatic access.
  *
- * When using the default "app" prefix, tokens that exist in the core nice-styles theme
- * are automatically treated as overrides and use the "core" prefix. Custom tokens use "app".
- * When a specific prefix is provided (e.g., "button", "icon"), all tokens use that prefix.
+ * The returned getToken function first checks the custom token map, then falls
+ * back to core nice-styles tokens if not found.
  *
  * Token structure:
  * - Keys are camelCase token names (auto-converted to kebab-case for CSS)
  * - Values are variant → value mappings
  *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - Optional prefix for CSS variable names (defaults to "app").
- *                 When "app", core token names are auto-detected as overrides using "core" prefix.
- *                 When a specific prefix is provided, all tokens use that prefix.
+ * @param prefix - Optional prefix for CSS variable names (defaults to "core").
+ *                 Use custom prefixes like "button" or "icon" for namespaced tokens.
  *
  * @returns ComponentTokens object containing:
  *          - GlobalStyles: Component for injection via StylesProvider
- *          - getComponentToken: Typed accessor function for retrieving token values
+ *          - getToken: Typed accessor function for retrieving token values
  *
  * @example
+ * // Global theme customization (uses default "core" prefix)
  * const AppTokenMap = {
- *   // Override token (exists in core) - uses "core" prefix
- *   fontSize: {
- *     base: "20px",
- *     larger: "40px",
- *   },
- *   // Custom token (not in core) - uses provided prefix or "app"
- *   brandColor: {
- *     primary: "#dc0000",
- *   },
+ *   fontSize: { base: "18px" },       // overrides core
+ *   brandColor: { primary: "#f00" },  // extends core
  * } as const
+ * export const { GlobalStyles, getToken } = createTokens(AppTokenMap)
  *
- * export const { GlobalStyles, getComponentToken } = createTokens(AppTokenMap)
+ * @example
+ * // Namespaced component tokens
+ * const ButtonTokenMap = { height: { small: "32px", base: "48px" } } as const
+ * export const { GlobalStyles, getToken } = createTokens(ButtonTokenMap, "button")
+ * // → --button--height--small, --button--height--base
  */
 export function createTokens<T extends TokenMap>(
   tokenMap: T,
-  prefix: string = "app"
+  prefix: string = "core"
 ): ComponentTokens<T> {
-  // Build flattened CSS variable map using standardized format: --{pkg}--{token}--{param}
-  // When using default "app" prefix, tokens that exist in core Theme are treated as overrides
-  // and use "core" prefix. When a specific prefix is provided, all tokens use that prefix.
   const flatTokenMap: Record<string, string> = {}
-  const tokenPrefixMap: Record<string, string> = {}
-  const useAutoOverride = prefix === "app"
 
   for (const [tokenKey, variants] of Object.entries(tokenMap)) {
-    const isOverride = useAutoOverride && tokenKey in Theme
-    const tokenPrefix = isOverride ? "core" : prefix
-    tokenPrefixMap[tokenKey] = tokenPrefix
-
     const cssName = camelToKebab(tokenKey)
     for (const [variant, value] of Object.entries(variants)) {
-      const cssVar = getCssConstant(tokenPrefix, cssName, variant)
+      const cssVar = getCssConstant(prefix, cssName, variant)
       flatTokenMap[cssVar.key] = String(value)
     }
   }
 
-  // Generate CSS declarations string
   const cssDeclarations = Object.entries(flatTokenMap)
     .map(([key, value]) => `${key}: ${value};`)
     .join("\n    ")
 
-  // Create GlobalStyles component that injects variables on :root
   const GlobalStyles = createGlobalStyle`
     :root {
       ${cssDeclarations}
     }
   `
 
-  // Create typed getter function using nice-styles helper
-  const getToken = <K extends keyof T, V extends VariantKeys<T[K]>>(
-    tokenName: K,
-    variant?: V
+  const getToken = (
+    tokenName: string,
+    variant?: string
   ): TokenResult => {
-    const tokenPrefix = tokenPrefixMap[tokenName as string] ?? prefix
-    return getTokenFromMap(tokenPrefix, tokenMap, tokenName as string, variant as string | undefined)
+    // Check custom token map first
+    if (tokenName in tokenMap) {
+      return getTokenFromMap(prefix, tokenMap, tokenName, variant)
+    }
+    // Fall back to core tokens
+    if (tokenName in Theme) {
+      return getTokenFromMap("core", Theme, tokenName, variant)
+    }
+    throw new Error(
+      `Token "${tokenName}" not found in custom or core tokens. ` +
+      `Custom tokens: ${Object.keys(tokenMap).join(", ")}`
+    )
   }
 
-  return { GlobalStyles, getComponentToken: getToken as GetComponentTokenFn<T> }
+  return { GlobalStyles, getToken: getToken as GetTokenFn<T> }
 }
