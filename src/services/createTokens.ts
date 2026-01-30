@@ -3,12 +3,12 @@ import type { ComponentType } from "react"
 import {
   camelToKebab,
   getCssConstant,
-  getTokenFromMap,
   Theme,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
 } from "nice-styles"
+import { registerTokens, getToken as registryGetToken } from "./tokenRegistry"
 
 /**
  * Extracts variant keys from a TokenDefinition
@@ -26,7 +26,7 @@ type GetTokenFn<T extends TokenMap> = {
 
 /**
  * Return type of createTokens
- * Provides both GlobalStyles injection and typed programmatic access to tokens
+ * Provides GlobalStyles injection and a reference to the unified getToken
  */
 export interface ComponentTokens<T extends TokenMap> {
   /**
@@ -41,68 +41,74 @@ export interface ComponentTokens<T extends TokenMap> {
   GlobalStyles: ComponentType
 
   /**
-   * Typed accessor function to get token values.
-   * First checks the custom token map, then falls back to core tokens.
+   * Reference to the unified token accessor.
+   * Queries all registered tokens (custom + core).
+   *
+   * @deprecated Import getToken directly from nice-react-styles instead.
+   *             Provided for backwards compatibility.
    *
    * @param tokenName - The camelCase token name (e.g., "strokeWidth", "fontSize")
    * @param variant - The variant key (e.g., "small", "base", "large")
    * @returns TokenResult with key, var, and value properties
-   * @throws Error if token or variant is not found in custom or core tokens
-   *
-   * @example
-   * getToken("strokeWidth", "base")
-   * // Returns: {
-   * //   key: "--icon--stroke-width--base",
-   * //   var: "var(--icon--stroke-width--base)",
-   * //   value: "1.5px"
-   * // }
    */
   getToken: GetTokenFn<T>
 }
 
 /**
  * Creates CSS custom property tokens with a GlobalStyles component for injection
- * via StylesProvider and a typed getter function for programmatic access.
- *
- * The returned getToken function first checks the custom token map, then falls
- * back to core nice-styles tokens if not found.
+ * via StylesProvider. Registers tokens in the unified registry for access via getToken.
  *
  * Token structure:
  * - Keys are camelCase token names (auto-converted to kebab-case for CSS)
  * - Values are variant → value mappings
  *
+ * Core token names (matching nice-styles Theme) use "core" prefix regardless of
+ * the prefix parameter. This allows value overrides while maintaining consistent
+ * CSS variable names.
+ *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - Optional prefix for CSS variable names (defaults to "core").
- *                 Use custom prefixes like "button" or "icon" for namespaced tokens.
+ * @param prefix - Prefix for custom token CSS variables (default: "app").
+ *                 Core token overrides always use "core" prefix.
  *
  * @returns ComponentTokens object containing:
  *          - GlobalStyles: Component for injection via StylesProvider
- *          - getToken: Typed accessor function for retrieving token values
+ *          - getToken: Reference to unified token accessor (for backwards compatibility)
  *
  * @example
- * // Global theme customization (uses default "core" prefix)
+ * // App-level tokens
  * const AppTokenMap = {
- *   fontSize: { base: "18px" },       // overrides core
- *   brandColor: { primary: "#f00" },  // extends core
+ *   fontSize: { base: "18px" },       // overrides core → --core--font-size--base
+ *   brandColor: { primary: "#f00" },  // custom → --app--brand-color--primary
  * } as const
- * export const { GlobalStyles, getToken } = createTokens(AppTokenMap)
+ * export const { GlobalStyles } = createTokens(AppTokenMap)
+ *
+ * // Access tokens via unified getToken (import separately)
+ * import { getToken } from "nice-react-styles"
+ * getToken("fontSize", "base")    // works (core override)
+ * getToken("brandColor", "primary") // works (custom)
  *
  * @example
  * // Namespaced component tokens
  * const ButtonTokenMap = { height: { small: "32px", base: "48px" } } as const
- * export const { GlobalStyles, getToken } = createTokens(ButtonTokenMap, "button")
+ * export const { GlobalStyles } = createTokens(ButtonTokenMap, "button")
  * // → --button--height--small, --button--height--base
  */
 export function createTokens<T extends TokenMap>(
   tokenMap: T,
-  prefix: string = "core"
+  prefix: string = "app"
 ): ComponentTokens<T> {
+  // Register tokens in the unified registry
+  registerTokens(tokenMap, prefix)
+
+  // Generate CSS declarations
   const flatTokenMap: Record<string, string> = {}
 
   for (const [tokenKey, variants] of Object.entries(tokenMap)) {
     const cssName = camelToKebab(tokenKey)
+    // Core token names use "core" prefix, custom tokens use provided prefix
+    const effectivePrefix = tokenKey in Theme ? "core" : prefix
     for (const [variant, value] of Object.entries(variants)) {
-      const cssVar = getCssConstant(prefix, cssName, variant)
+      const cssVar = getCssConstant(effectivePrefix, cssName, variant)
       flatTokenMap[cssVar.key] = String(value)
     }
   }
@@ -117,23 +123,6 @@ export function createTokens<T extends TokenMap>(
     }
   `
 
-  const getToken = (
-    tokenName: string,
-    variant?: string
-  ): TokenResult => {
-    // Check custom token map first
-    if (tokenName in tokenMap) {
-      return getTokenFromMap(prefix, tokenMap, tokenName, variant)
-    }
-    // Fall back to core tokens
-    if (tokenName in Theme) {
-      return getTokenFromMap("core", Theme, tokenName, variant)
-    }
-    throw new Error(
-      `Token "${tokenName}" not found in custom or core tokens. ` +
-      `Custom tokens: ${Object.keys(tokenMap).join(", ")}`
-    )
-  }
-
-  return { GlobalStyles, getToken: getToken as GetTokenFn<T> }
+  // Return GlobalStyles and reference to unified getToken for backwards compatibility
+  return { GlobalStyles, getToken: registryGetToken as GetTokenFn<T> }
 }

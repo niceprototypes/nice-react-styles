@@ -9,8 +9,11 @@ export { StylesProvider } from './components/StylesProvider'
 export { createTokens } from './services/createTokens'
 export type { ComponentTokens } from './services/createTokens'
 
-// Re-export from nice-styles for convenience
-export { getToken, getTokenFromMap } from 'nice-styles'
+// Token registry - unified token access
+export { getToken, registerTokens, hasToken, getTokenNames } from './services/tokenRegistry'
+
+// Re-export from nice-styles for convenience (low-level utilities)
+export { getTokenFromMap } from 'nice-styles'
 export type { TokenResult, TokenDefinition, TokenMap } from 'nice-styles'
 
 // Type exports
