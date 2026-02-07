@@ -1,4 +1,4 @@
-import {
+ import {
   Theme,
   getTokenFromMap,
   type TokenDefinition,
@@ -12,91 +12,118 @@ import {
 export const DEFAULT_PREFIX = "core"
 
 /**
+ * Default mode string value
+ */
+export const DEFAULT_MODE = "light"
+
+/**
+ * Value with mode variants
+ * Must include DEFAULT_MODE key, additional modes are optional
+ */
+export interface ModeValue {
+  [mode: string]: string | number
+}
+
+/**
+ * Check if a value is a mode object (has DEFAULT_MODE key)
+ */
+export function isModeValue(value: unknown): value is ModeValue {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    DEFAULT_MODE in value &&
+    typeof (value as ModeValue)[DEFAULT_MODE] !== "undefined"
+  )
+}
+
+/**
  * Registry entry storing token variants and their CSS prefix
  */
 interface RegistryEntry {
   prefix: string
-  variants: TokenDefinition
+  variants: Record<string, string | number | ModeValue>
+  modes: Set<string>
 }
 
 /**
  * Unified token registry - stores all registered tokens (core + custom)
- * Initialized with core Theme tokens on module load
  */
 const registry = new Map<string, RegistryEntry>()
 
-// Initialize registry with core tokens
-for (const [name, variants] of Object.entries(Theme)) {
-  registry.set(name, { prefix: DEFAULT_PREFIX, variants: variants as TokenDefinition })
+/**
+ * Extract default mode variants from an entry (for getTokenFromMap compatibility)
+ */
+function getDefaultVariants(entry: RegistryEntry): TokenDefinition {
+  const result: TokenDefinition = {}
+  for (const [key, value] of Object.entries(entry.variants)) {
+    if (isModeValue(value)) {
+      result[key] = value[DEFAULT_MODE]
+    } else {
+      result[key] = value
+    }
+  }
+  return result
 }
 
-/**
- * Check if a token definition uses the legacy name/items format
- */
-function isLegacyFormat(def: unknown): def is { name: string; items: TokenDefinition } {
-  return typeof def === 'object' && def !== null && 'name' in def && 'items' in def
+// Initialize registry with core tokens
+for (const [name, def] of Object.entries(Theme)) {
+  registry.set(name, {
+    prefix: DEFAULT_PREFIX,
+    variants: def as Record<string, string | number>,
+    modes: new Set([DEFAULT_MODE]),
+  })
 }
 
 /**
  * Register tokens into the unified registry.
  *
- * When overriding existing tokens, variants are MERGED (not replaced).
+ * Supports two value formats:
+ * - Simple value: `{ base: "16px" }` (default mode only)
+ * - Mode value: `{ base: { light: "16px", dark: "18px" } }`
  *
  * @param tokenMap - Object mapping token names to variant → value objects
  * @param prefix - CSS variable prefix (default: "core")
- *
- * @example
- * // Override core fontSize (merges with existing variants)
- * registerTokens({ fontSize: { base: "18px" } })
- * // → --core--font-size--base: 18px (other variants preserved)
- *
- * @example
- * // Add custom token with explicit prefix
- * registerTokens({ brandColor: { primary: "#f00" } }, "app")
- * // → --app--brand-color--primary: #f00
  */
-export function registerTokens(tokenMap: TokenMap, prefix = DEFAULT_PREFIX): void {
+export function registerTokens(
+  tokenMap: TokenMap | Record<string, Record<string, string | number | ModeValue>>,
+  prefix = DEFAULT_PREFIX
+): void {
   for (const [name, variants] of Object.entries(tokenMap)) {
-    // Merge with existing variants if token already exists
     const existing = registry.get(name)
-    let mergedVariants: TokenDefinition
+    const modes = new Set<string>([DEFAULT_MODE])
+
+    for (const value of Object.values(variants)) {
+      if (isModeValue(value)) {
+        for (const mode of Object.keys(value)) {
+          modes.add(mode)
+        }
+      }
+    }
+
+    let mergedVariants: Record<string, string | number | ModeValue>
 
     if (existing) {
-      // Extract variants from existing entry (handle legacy format from Theme)
-      const existingVariants = isLegacyFormat(existing.variants)
-        ? existing.variants.items
-        : existing.variants
-      mergedVariants = { ...existingVariants, ...variants }
+      mergedVariants = { ...existing.variants, ...variants }
+      for (const mode of existing.modes) {
+        modes.add(mode)
+      }
     } else {
       mergedVariants = variants
     }
 
-    registry.set(name, { prefix, variants: mergedVariants })
+    registry.set(name, { prefix, variants: mergedVariants, modes })
   }
 }
 
 /**
  * Unified token accessor - queries all registered tokens.
  *
- * Works immediately with core tokens. Custom tokens become available
- * after calling registerTokens() or createTokens().
- *
- * @param name - The camelCase token name (e.g., "fontSize", "brandColor")
+ * @param name - The camelCase token name
  * @param variant - The variant key (default: "base")
+ * @param mode - Optional theme mode (e.g., "dark")
  * @returns TokenResult with key, var, and value properties
- * @throws Error if token name is not found in registry
- *
- * @example
- * // Core token (always available)
- * getToken("fontSize", "base")
- * // → { key: "--core--font-size--base", var: "var(--core--font-size--base)", value: "16px" }
- *
- * @example
- * // Custom token (after registration)
- * getToken("brandColor", "primary")
- * // → { key: "--app--brand-color--primary", var: "var(--app--brand-color--primary)", value: "#f00" }
  */
-export function getToken(name: string, variant = "base"): TokenResult {
+export function getToken(name: string, variant = "base", mode?: string): TokenResult {
   const entry = registry.get(name)
   if (!entry) {
     const available = [...registry.keys()].slice(0, 10).join(", ")
@@ -105,7 +132,35 @@ export function getToken(name: string, variant = "base"): TokenResult {
       `Available tokens include: ${available}...`
     )
   }
-  return getTokenFromMap(entry.prefix, { [name]: entry.variants }, name, variant)
+
+  const defaultVariants = getDefaultVariants(entry)
+  return getTokenFromMap(entry.prefix, { [name]: defaultVariants }, name, variant, mode)
+}
+
+/**
+ * Get the mode-specific value for a token variant
+ */
+export function getTokenModeValue(
+  name: string,
+  variant: string,
+  mode: string
+): string | number | undefined {
+  const entry = registry.get(name)
+  if (!entry) return undefined
+
+  const value = entry.variants[variant]
+  if (isModeValue(value)) {
+    return value[mode]
+  }
+  return mode === DEFAULT_MODE ? value : undefined
+}
+
+/**
+ * Get all modes registered for a token
+ */
+export function getTokenModes(name: string): string[] {
+  const entry = registry.get(name)
+  return entry ? [...entry.modes] : []
 }
 
 /**
@@ -113,6 +168,14 @@ export function getToken(name: string, variant = "base"): TokenResult {
  */
 export function hasToken(name: string): boolean {
   return registry.has(name)
+}
+
+/**
+ * Get all variant keys for a registered token
+ */
+export function getTokenVariants(name: string): string[] {
+  const entry = registry.get(name)
+  return entry ? Object.keys(entry.variants) : []
 }
 
 /**
