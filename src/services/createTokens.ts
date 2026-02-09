@@ -10,7 +10,6 @@ import {
 import {
   registerTokens,
   getToken as registryGetToken,
-  DEFAULT_PREFIX,
   DEFAULT_MODE,
   isModeValue,
   type ModeValue,
@@ -55,7 +54,7 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  * Supports mode variants for theming (light/dark/custom modes).
  *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - Prefix for CSS variables (default: "core")
+ * @param prefix - Optional component prefix for CSS variables (e.g., "button", "tile")
  *
  * @example
  * // Simple tokens (default mode only)
@@ -73,7 +72,7 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  */
 export function createTokens<T extends TokenMap | TokenMapWithModes>(
   tokenMap: T,
-  prefix: string = DEFAULT_PREFIX
+  prefix?: string
 ): ComponentTokens<T extends TokenMap ? T : TokenMap> {
   // Register tokens in the unified registry
   registerTokens(tokenMap as TokenMapWithModes, prefix)
@@ -108,13 +107,13 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
       if (isModeValue(value)) {
         // Mode value: generate default + mode primitives
         const defaultValue = value[DEFAULT_MODE]
-        const cssVar = getConstant(prefix, cssName, variant)
+        const cssVar = getConstant(cssName, variant, { pkg: prefix })
         defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
 
         // Generate mode primitives and collect for media query
         for (const [mode, modeValue] of Object.entries(value)) {
           if (mode !== DEFAULT_MODE) {
-            const modeCssVar = getConstant(prefix, cssName, variant, mode)
+            const modeCssVar = getConstant(cssName, variant, { mode, pkg: prefix })
             defaultDeclarations.push(`${modeCssVar.key}: ${modeValue};`)
 
             // Add reassignment for media query
@@ -126,7 +125,7 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
         }
       } else {
         // Simple value: default mode only
-        const cssVar = getConstant(prefix, cssName, variant)
+        const cssVar = getConstant(cssName, variant, { pkg: prefix })
         defaultDeclarations.push(`${cssVar.key}: ${value};`)
       }
     }
@@ -152,7 +151,7 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
   }
 
   // Inject CSS into shared <style data-nice-tokens> element at module load time
-  injectTokenCSS(prefix, cssString)
+  injectTokenCSS(prefix ?? "", cssString)
 
   // No-op component — CSS is already injected above.
   // Kept for backwards compat: external consumers may still render <GlobalStyles />.

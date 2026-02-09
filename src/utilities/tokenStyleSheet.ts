@@ -7,7 +7,7 @@
  * This eliminates duplicate :root blocks and reduces style recalculation overhead.
  *
  * Usage:
- *   injectTokenCSS("core", ":root { --core--font-size--base: 16px; }")
+ *   injectTokenCSS("app", ":root { --np--font-size--base: 16px; }")
  *
  * Calling with the same prefix replaces the previous CSS for that prefix.
  * SSR-safe: no-ops when `document` is not available.
@@ -57,7 +57,7 @@ function rebuild() {
  * Injects token CSS into a single shared <style data-nice-tokens> element.
  * Deduplicates by prefix — calling again with the same prefix replaces previous CSS.
  *
- * @param prefix - Token prefix (e.g. "core", "tile", "button")
+ * @param prefix - Token prefix for deduplication (e.g. "tile", "button")
  * @param css - Full CSS string including :root block and any media queries
  */
 export function injectTokenCSS(prefix: string, css: string) {

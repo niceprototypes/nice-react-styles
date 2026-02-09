@@ -7,11 +7,6 @@
 } from "nice-styles"
 
 /**
- * Default prefix for core design tokens
- */
-export const DEFAULT_PREFIX = "core"
-
-/**
  * Default mode string value
  */
 export const DEFAULT_MODE = "light"
@@ -40,7 +35,7 @@ export function isModeValue(value: unknown): value is ModeValue {
  * Registry entry storing token variants and their CSS prefix
  */
 interface RegistryEntry {
-  prefix: string
+  prefix?: string
   variants: Record<string, string | number | ModeValue>
   modes: Set<string>
 }
@@ -68,7 +63,6 @@ function getDefaultVariants(entry: RegistryEntry): TokenDefinition {
 // Initialize registry with core tokens
 for (const [name, def] of Object.entries(Theme)) {
   registry.set(name, {
-    prefix: DEFAULT_PREFIX,
     variants: def as Record<string, string | number>,
     modes: new Set([DEFAULT_MODE]),
   })
@@ -82,11 +76,11 @@ for (const [name, def] of Object.entries(Theme)) {
  * - Mode value: `{ base: { light: "16px", dark: "18px" } }`
  *
  * @param tokenMap - Object mapping token names to variant → value objects
- * @param prefix - CSS variable prefix (default: "core")
+ * @param prefix - Optional component prefix for CSS variables (e.g., "button", "tile")
  */
 export function registerTokens(
   tokenMap: TokenMap | Record<string, Record<string, string | number | ModeValue>>,
-  prefix = DEFAULT_PREFIX
+  prefix?: string
 ): void {
   for (const [name, variants] of Object.entries(tokenMap)) {
     const existing = registry.get(name)
@@ -125,16 +119,12 @@ export function registerTokens(
  */
 export function getToken(name: string, variant = "base", mode?: string): TokenResult {
   const entry = registry.get(name)
-  if (!entry) {
-    const available = [...registry.keys()].slice(0, 10).join(", ")
-    throw new Error(
-      `Token "${name}" not found in registry. ` +
-      `Available tokens include: ${available}...`
-    )
+  if (entry) {
+    const defaultVariants = getDefaultVariants(entry)
+    return getTokenFromMap({ [name]: defaultVariants }, name, variant, { mode, prefix: entry.prefix })
   }
-
-  const defaultVariants = getDefaultVariants(entry)
-  return getTokenFromMap(entry.prefix, { [name]: defaultVariants }, name, variant, mode)
+  // Fallback: construct CSS var for unregistered tokens (namespace "np" still applied by getConstant)
+  return getTokenFromMap({ [name]: { [variant]: "" } }, name, variant, { mode })
 }
 
 /**

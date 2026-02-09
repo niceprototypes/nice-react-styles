@@ -20,7 +20,6 @@ export {
   getTokenModes,
   getTokenModeValue,
   isModeValue,
-  DEFAULT_PREFIX,
   DEFAULT_MODE,
 } from './services/tokenRegistry'
 export type { ModeValue } from './services/tokenRegistry'
