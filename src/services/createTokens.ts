@@ -1,5 +1,5 @@
-import { createGlobalStyle } from "styled-components"
 import type { ComponentType } from "react"
+import { injectTokenCSS } from "../utilities/tokenStyleSheet"
 import {
   camelToKebab,
   getConstant,
@@ -151,7 +151,12 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
     `
   }
 
-  const GlobalStyles = createGlobalStyle`${cssString}`
+  // Inject CSS into shared <style data-nice-tokens> element at module load time
+  injectTokenCSS(prefix, cssString)
+
+  // No-op component — CSS is already injected above.
+  // Kept for backwards compat: external consumers may still render <GlobalStyles />.
+  const GlobalStyles: ComponentType = () => null
 
   return {
     GlobalStyles,
