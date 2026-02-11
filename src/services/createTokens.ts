@@ -138,13 +138,13 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
     }
   `
 
-  // Add media query for dark mode if it exists
-  const darkDeclarations = modeDeclarations.get("dark")
-  if (darkDeclarations && darkDeclarations.length > 0) {
+  // Add media query for night mode if it exists
+  const nightDeclarations = modeDeclarations.get("night")
+  if (nightDeclarations && nightDeclarations.length > 0) {
     cssString += `
     @media (prefers-color-scheme: dark) {
       :root {
-        ${darkDeclarations.join("\n        ")}
+        ${nightDeclarations.join("\n        ")}
       }
     }
     `

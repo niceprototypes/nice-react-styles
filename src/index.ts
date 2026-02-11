@@ -13,7 +13,6 @@ export { mapCoreToken } from './services/mapCoreToken'
 // Token registry - unified token access
 export {
   getToken,
-  getComponentToken,
   registerTokens,
   hasToken,
   getTokenNames,
@@ -23,11 +22,11 @@ export {
   isModeValue,
   DEFAULT_MODE,
 } from './services/tokenRegistry'
-export type { ModeValue, ComponentPrefix } from './services/tokenRegistry'
+export type { ModeValue } from './services/tokenRegistry'
 
 // Re-export from nice-styles for convenience (low-level utilities)
-export { getTokenFromMap } from 'nice-styles'
-export type { TokenResult, TokenDefinition, TokenMap } from 'nice-styles'
+export { getTokenFromMap, getComponentToken } from 'nice-styles'
+export type { TokenResult, TokenDefinition, TokenMap, ComponentPrefix } from 'nice-styles'
 
 // Type exports
 export type { StylesProviderProps, GoogleFontsConfig } from './components/StylesProvider/types'

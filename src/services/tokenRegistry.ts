@@ -128,32 +128,6 @@ export function getToken(name: string, variant = "base", mode?: string): TokenRe
 }
 
 /**
- * Valid component-level prefixes for scoped CSS variables
- */
-export type ComponentPrefix = "button" | "icon" | "tile" | "typography"
-
-/**
- * Component-scoped token accessor.
- *
- * Identical to getToken but takes an explicit component prefix,
- * producing CSS variables like --np--button--height--small.
- *
- * @param prefix - Component prefix
- * @param name - The camelCase token name
- * @param variant - The variant key (default: "base")
- * @param mode - Optional theme mode (e.g., "dark")
- * @returns TokenResult with key, var, and value properties
- */
-export function getComponentToken(prefix: ComponentPrefix, name: string, variant = "base", mode?: string): TokenResult {
-  const entry = registry.get(name)
-  if (entry) {
-    const defaultVariants = getDefaultVariants(entry)
-    return getTokenFromMap({ [name]: defaultVariants }, name, variant, { mode, prefix })
-  }
-  return getTokenFromMap({ [name]: { [variant]: "" } }, name, variant, { mode, prefix })
-}
-
-/**
  * Get the mode-specific value for a token variant
  */
 export function getTokenModeValue(
