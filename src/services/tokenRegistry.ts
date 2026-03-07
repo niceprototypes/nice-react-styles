@@ -9,7 +9,7 @@
 /**
  * Default mode string value
  */
-export const DEFAULT_MODE = "light"
+export const DEFAULT_MODE = "day"
 
 /**
  * Value with mode variants
@@ -73,7 +73,7 @@ for (const [name, def] of Object.entries(Theme)) {
  *
  * Supports two value formats:
  * - Simple value: `{ base: "16px" }` (default mode only)
- * - Mode value: `{ base: { light: "16px", dark: "18px" } }`
+ * - Mode value: `{ base: { day: "16px", night: "18px" } }`
  *
  * @param tokenMap - Object mapping token names to variant → value objects
  * @param prefix - Optional component prefix for CSS variables (e.g., "button", "tile")

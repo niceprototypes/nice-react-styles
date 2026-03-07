@@ -8,7 +8,6 @@ export { StylesProvider } from './components/StylesProvider'
 // Service exports
 export { createTokens } from './services/createTokens'
 export type { ComponentTokens } from './services/createTokens'
-export { mapCoreToken } from './services/mapCoreToken'
 
 // Token registry - unified token access
 export {
@@ -24,9 +23,10 @@ export {
 } from './services/tokenRegistry'
 export type { ModeValue } from './services/tokenRegistry'
 
-// Re-export from nice-styles for convenience (low-level utilities)
-export { getTokenFromMap, getComponentToken } from 'nice-styles'
-export type { TokenResult, TokenDefinition, TokenMap, ComponentPrefix } from 'nice-styles'
+// Re-export from nice-styles for convenience
+export { getComponentToken } from 'nice-styles'
+export type { TokenResult, ComponentPrefix } from 'nice-styles'
 
 // Type exports
-export type { StylesProviderProps, GoogleFontsConfig } from './components/StylesProvider/types'
+export type { StylesProviderProps } from './components/StylesProvider/types'
+export type { GoogleFontsConfig, LinkAttributes, GoogleFontMetadata, FontAxis } from './types'

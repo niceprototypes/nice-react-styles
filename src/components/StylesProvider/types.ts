@@ -3,40 +3,7 @@
  */
 
 import type { ComponentType, ReactNode } from 'react'
-import type { LinkAttributes } from '../FontLoader/types'
-import type { GoogleFontMetadata } from '../FontFaceStyles/types'
-
-/**
- * Configuration for loading Google Fonts
- * Passed to StylesProvider to enable dynamic font loading
- */
-export interface GoogleFontsConfig {
-  /**
-   * Array of link elements to inject into the document head
-   * Typically includes:
-   * 1. Preconnect to fonts.googleapis.com
-   * 2. Preconnect to fonts.gstatic.com (with crossorigin)
-   * 3. Stylesheet link to the Google Fonts CSS
-   *
-   * @example
-   * ```tsx
-   * const links: LinkAttributes[] = [
-   *   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-   *   { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-   *   { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=...' }
-   * ]
-   * ```
-   */
-  links: LinkAttributes[]
-
-  /**
-   * Optional: Generate @font-face declarations for specific font weights
-   * If provided, will create granular @font-face rules mapped to nice-styles fontWeight tokens
-   *
-   * This is parsed automatically from the Google Fonts URL if not provided
-   */
-  fonts?: GoogleFontMetadata[]
-}
+import type { GoogleFontsConfig } from '../../types'
 
 /**
  * Props for the StylesProvider component
@@ -71,19 +38,6 @@ export interface StylesProviderProps {
    * @example Using URL string:
    * ```tsx
    * <StylesProvider googleFonts="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
-   *   <App />
-   * </StylesProvider>
-   * ```
-   *
-   * @example Using manual configuration:
-   * ```tsx
-   * <StylesProvider googleFonts={{
-   *   links: [
-   *     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-   *     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-   *     { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=...' }
-   *   ]
-   * }}>
    *   <App />
    * </StylesProvider>
    * ```

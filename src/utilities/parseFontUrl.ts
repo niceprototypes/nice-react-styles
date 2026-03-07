@@ -2,7 +2,7 @@
  * Utility functions for parsing Google Fonts URLs and extracting metadata
  */
 
-import type { GoogleFontMetadata, FontAxis } from '../components/FontFaceStyles/types'
+import type { GoogleFontMetadata, FontAxis } from '../types'
 
 /**
  * Parses a Google Fonts URL to extract font family and axis information

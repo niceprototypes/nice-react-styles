@@ -8,10 +8,10 @@
 import { useMemo } from 'react'
 import { Theme } from 'nice-styles'
 import { FontLoader } from '../FontLoader'
-import { parseGoogleFontsUrl } from '../../services/parseFontUrl'
+import { parseGoogleFontsUrl } from '../../utilities/parseFontUrl'
 import { ThemeProvider } from './styled'
-import type { StylesProviderProps, GoogleFontsConfig } from './types'
-import type { LinkAttributes } from '../FontLoader/types'
+import type { StylesProviderProps } from './types'
+import type { GoogleFontsConfig, LinkAttributes } from '../../types'
 import 'nice-styles/variables.css'
 
 /**
