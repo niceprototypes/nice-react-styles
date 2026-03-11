@@ -23,9 +23,63 @@ export {
 } from './services/tokenRegistry'
 export type { ModeValue } from './services/tokenRegistry'
 
-// Re-export from nice-styles for convenience
-export { getComponentToken } from 'nice-styles'
-export type { TokenResult, ComponentPrefix } from 'nice-styles'
+// Re-export all nice-styles public API
+export {
+  getBreakpoint,
+  getColorToken,
+  getSizeToken,
+  setCoreTokens,
+  setColorTokens,
+  setSizeTokens,
+  getConstant,
+  NAMESPACE,
+  getComponentToken,
+  getInvertedMode,
+  getTextHeight,
+  getTokenFromMap,
+  getTokenByPath,
+  camelToKebab,
+  Theme,
+  componentTokensData,
+} from 'nice-styles'
+
+export type {
+  // Token result types
+  TokenResult,
+  ComponentPrefix,
+  BreakpointResult,
+  BreakpointName,
+  CoreTokenConfig,
+  CssConstantResult,
+  CssConstantOptions,
+  TokenDefinition,
+  TokenMap,
+  ComponentTokenNode,
+  TokenFromMapOptions,
+  // Token union types
+  AnimationDurationType,
+  AnimationEasingType,
+  BackgroundColorType,
+  BorderColorType,
+  BorderRadiusType,
+  BorderWidthType,
+  BoxShadowType,
+  CellHeightType,
+  ForegroundColorType,
+  FontFamilyType,
+  FontSizeType,
+  FontWeightType,
+  GapType,
+  LetterSpacingType,
+  LineHeightType,
+  // Layout types
+  SpacingShorthandType,
+  SpacingDefinitionType,
+  SpacingResponsiveType,
+  SpacingType,
+  // Mode types
+  ModeType,
+} from 'nice-styles'
 
 // Type exports
 export type { StylesProviderProps } from './components/StylesProvider/types'
