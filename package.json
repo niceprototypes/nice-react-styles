@@ -1,6 +1,6 @@
 {
   "name": "nice-react-styles",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "type": "module",
   "description": "React provider component for nice-styles CSS variables with styled-components theme support",
   "main": "dist/index.js",
@@ -72,6 +72,6 @@
   },
   "homepage": "https://github.com/niceprototypes/nice-react-styles#readme",
   "dependencies": {
-    "nice-styles": "file:../nice-styles"
+    "nice-styles": "^5.0.0"
   }
 }
