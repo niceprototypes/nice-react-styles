@@ -73,6 +73,6 @@
   },
   "homepage": "https://github.com/niceprototypes/nice-react-styles#readme",
   "dependencies": {
-    "nice-styles": "^5.0.0"
+    "nice-styles": "file:../nice-styles"
   }
 }
