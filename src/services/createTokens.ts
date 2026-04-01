@@ -3,6 +3,7 @@ import { injectTokenCSS } from "../utilities/tokenStyleSheet"
 import {
   camelToKebab,
   getConstant,
+  getBreakpoint,
   componentTokensData,
   type TokenDefinition,
   type TokenMap,
@@ -12,8 +13,11 @@ import {
   registerTokens,
   getToken as registryGetToken,
   DEFAULT_MODE,
+  DEFAULT_BREAKPOINT,
   isModeValue,
+  isBreakpointValue,
   type ModeValue,
+  type BreakpointValue,
 } from "./tokenRegistry"
 
 // Known component prefixes — used to detect 3-level token overrides
@@ -57,31 +61,61 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  * Processes variant entries into CSS declarations.
  * Shared by both flat tokens and component token overrides.
  *
+ * Handles three value shapes:
+ * - Simple value: `"16px"` → single :root declaration
+ * - ModeValue: `{ day: "#000", night: "#fff" }` → default + mode primitives + mode media entries
+ * - BreakpointValue: `{ mobile: "14px", desktop: "20px" }` → default + breakpoint primitives + breakpoint media entries
+ *
+ * BreakpointValue is checked before ModeValue — they are mutually exclusive on the same variant.
+ *
  * @param cssName - Kebab-case token name
- * @param variants - Variant-to-value map (may include ModeValue objects)
+ * @param variants - Variant-to-value map (may include ModeValue or BreakpointValue objects)
  * @param pkg - Component prefix for CSS variable namespace, or undefined for core tokens
  * @param defaultDeclarations - Collects :root declarations
- * @param modeDeclarations - Collects mode-specific declarations for media queries
+ * @param modeDeclarations - Collects mode-specific declarations for @media (prefers-color-scheme) blocks
+ * @param breakpointDeclarations - Collects breakpoint-specific declarations for @media (min-width) blocks
  */
 function processVariants(
   cssName: string,
-  variants: Record<string, string | number | ModeValue>,
+  variants: Record<string, string | number | ModeValue | BreakpointValue>,
   pkg: string | undefined,
   defaultDeclarations: string[],
-  modeDeclarations: Map<string, string[]>
+  modeDeclarations: Map<string, string[]>,
+  breakpointDeclarations: Map<string, string[]>
 ): void {
   for (const [variant, value] of Object.entries(variants)) {
-    if (isModeValue(value)) {
-      // Mode value — generate default + mode primitives
+    if (isBreakpointValue(value)) {
+      // Breakpoint value — semantic variable gets the default breakpoint (mobile) value
+      const defaultValue = value[DEFAULT_BREAKPOINT]
+      const cssVar = getConstant(cssName, variant, { pkg })
+      defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
+
+      for (const [breakpoint, bpValue] of Object.entries(value)) {
+        if (breakpoint !== DEFAULT_BREAKPOINT) {
+          // Non-default breakpoint primitive — stable reference (e.g., --*--desktop: value)
+          const bpCssVar = getConstant(cssName, variant, { breakpoint, pkg })
+          defaultDeclarations.push(`${bpCssVar.key}: ${bpValue};`)
+
+          // Media query entry — reassigns semantic variable to breakpoint primitive at viewport
+          const declarations = breakpointDeclarations.get(breakpoint)
+          if (declarations) {
+            declarations.push(`${cssVar.key}: var(${bpCssVar.key});`)
+          }
+        }
+      }
+    } else if (isModeValue(value)) {
+      // Mode value — semantic variable gets the default mode (day) value
       const defaultValue = value[DEFAULT_MODE]
       const cssVar = getConstant(cssName, variant, { pkg })
       defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
 
       for (const [mode, modeValue] of Object.entries(value)) {
         if (mode !== DEFAULT_MODE) {
+          // Non-default mode primitive — stable reference, never reassigned (e.g., --*--night: value)
           const modeCssVar = getConstant(cssName, variant, { mode, pkg })
           defaultDeclarations.push(`${modeCssVar.key}: ${modeValue};`)
 
+          // Media query entry — reassigns semantic variable to mode primitive at runtime
           const declarations = modeDeclarations.get(mode)
           if (declarations) {
             declarations.push(`${cssVar.key}: var(${modeCssVar.key});`)
@@ -89,7 +123,7 @@ function processVariants(
         }
       }
     } else {
-      // Simple value — default mode only
+      // Simple value — single declaration, no mode or breakpoint variants
       const cssVar = getConstant(cssName, variant, { pkg })
       defaultDeclarations.push(`${cssVar.key}: ${value};`)
     }
@@ -135,33 +169,52 @@ function processVariants(
  * @example
  * // Opt in to auto dark mode
  * createTokens(AppTokens, "app", { colorSchemeEnabled: true })
+ *
+ * @example
+ * // Breakpoint-aware tokens (mobile-first, always active)
+ * const AppTokens = {
+ *   fontSize: {
+ *     base: { mobile: "16px", desktop: "20px" },
+ *     large: { mobile: "22px", desktop: "28px" },
+ *   }
+ * } as const
  */
 export function createTokens<T extends TokenMap | TokenMapWithModes>(
   tokenMap: T,
   prefix?: string,
   options?: { colorSchemeEnabled?: boolean }
 ): ComponentTokens<T extends TokenMap ? T : TokenMap> {
+  type VariantValue = string | number | ModeValue | BreakpointValue
+  type VariantMap = Record<string, VariantValue>
+
   // Separate flat tokens from component token overrides
-  const flatTokens: Record<string, Record<string, string | number | ModeValue>> = {}
-  const componentOverrides: Record<string, Record<string, Record<string, string | number | ModeValue>>> = {}
+  const flatTokens: Record<string, VariantMap> = {}
+  const componentOverrides: Record<string, Record<string, VariantMap>> = {}
 
   for (const [key, value] of Object.entries(tokenMap)) {
     if (componentPrefixes.has(key)) {
       // Component prefix — expect 3-level structure: prefix -> tokenName -> variant
-      componentOverrides[key] = value as Record<string, Record<string, string | number | ModeValue>>
+      componentOverrides[key] = value as Record<string, VariantMap>
     } else {
-      flatTokens[key] = value as Record<string, string | number | ModeValue>
+      flatTokens[key] = value as VariantMap
     }
   }
 
   // Register flat tokens only — component overrides work via CSS variable cascade
   registerTokens(flatTokens, prefix)
 
-  // Collect all modes from flat tokens
-  const modes = new Set<string>([DEFAULT_MODE])
-  for (const variants of Object.values(flatTokens)) {
+  /**
+   * Scan a variant map for mode and breakpoint dimension keys.
+   * Populates the shared modes/breakpoints sets so we can pre-initialize
+   * the declaration maps before processing.
+   */
+  function collectDimensions(variants: VariantMap, modes: Set<string>, breakpoints: Set<string>): void {
     for (const value of Object.values(variants)) {
-      if (isModeValue(value)) {
+      if (isBreakpointValue(value)) {
+        for (const bp of Object.keys(value)) {
+          breakpoints.add(bp)
+        }
+      } else if (isModeValue(value)) {
         for (const mode of Object.keys(value)) {
           modes.add(mode)
         }
@@ -169,50 +222,58 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
     }
   }
 
-  // Collect modes from component overrides — one level deeper
+  // Collect all modes and breakpoints from flat tokens and component overrides
+  const modes = new Set<string>([DEFAULT_MODE])
+  const breakpoints = new Set<string>([DEFAULT_BREAKPOINT])
+
+  for (const variants of Object.values(flatTokens)) {
+    collectDimensions(variants, modes, breakpoints)
+  }
   for (const tokenGroups of Object.values(componentOverrides)) {
     for (const variants of Object.values(tokenGroups)) {
-      for (const value of Object.values(variants)) {
-        if (isModeValue(value)) {
-          for (const mode of Object.keys(value)) {
-            modes.add(mode)
-          }
-        }
-      }
+      collectDimensions(variants, modes, breakpoints)
     }
   }
 
-  // Generate CSS declarations
+  // Initialize declaration accumulators
   const defaultDeclarations: string[] = []
-  const modeDeclarations: Map<string, string[]> = new Map()
 
-  // Initialize mode declaration arrays for non-default modes
+  // Mode declarations — keyed by non-default mode name (e.g., "night")
+  const modeDeclarations: Map<string, string[]> = new Map()
   for (const mode of modes) {
     if (mode !== DEFAULT_MODE) {
       modeDeclarations.set(mode, [])
     }
   }
 
+  // Breakpoint declarations — keyed by non-default breakpoint name (e.g., "tablet", "desktop")
+  const breakpointDeclarations: Map<string, string[]> = new Map()
+  for (const bp of breakpoints) {
+    if (bp !== DEFAULT_BREAKPOINT) {
+      breakpointDeclarations.set(bp, [])
+    }
+  }
+
   // Flat tokens — 2-level: tokenName -> variant
   for (const [tokenKey, variants] of Object.entries(flatTokens)) {
-    processVariants(camelToKebab(tokenKey), variants, prefix, defaultDeclarations, modeDeclarations)
+    processVariants(camelToKebab(tokenKey), variants, prefix, defaultDeclarations, modeDeclarations, breakpointDeclarations)
   }
 
   // Component token overrides — 3-level: prefix -> tokenName -> variant
   for (const [componentPrefix, tokenGroups] of Object.entries(componentOverrides)) {
     for (const [tokenName, variants] of Object.entries(tokenGroups)) {
-      processVariants(camelToKebab(tokenName), variants, componentPrefix, defaultDeclarations, modeDeclarations)
+      processVariants(camelToKebab(tokenName), variants, componentPrefix, defaultDeclarations, modeDeclarations, breakpointDeclarations)
     }
   }
 
-  // Build CSS string
+  // Build CSS string — :root block with all default + primitive declarations
   let cssString = `
     :root {
       ${defaultDeclarations.join("\n      ")}
     }
   `
 
-  // Add media query for night mode if enabled and declarations exist
+  // Color scheme media query — opt-in via colorSchemeEnabled option
   if (options?.colorSchemeEnabled) {
     const nightDeclarations = modeDeclarations.get("night")
     if (nightDeclarations && nightDeclarations.length > 0) {
@@ -223,6 +284,28 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
       }
     }
     `
+    }
+  }
+
+  // Breakpoint media queries — always active (not opt-in), mobile-first via min-width
+  // Breakpoint query map: breakpoint name → media query string
+  const breakpointQueries: Record<string, string> = {
+    tablet: getBreakpoint("tablet").query,
+    desktop: getBreakpoint("desktop").query,
+  }
+
+  for (const [bp, declarations] of breakpointDeclarations.entries()) {
+    if (declarations.length > 0) {
+      const query = breakpointQueries[bp]
+      if (query) {
+        cssString += `
+    ${query} {
+      :root {
+        ${declarations.join("\n        ")}
+      }
+    }
+    `
+      }
     }
   }
 

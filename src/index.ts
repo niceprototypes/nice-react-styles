@@ -19,9 +19,11 @@ export {
   getTokenModes,
   getTokenModeValue,
   isModeValue,
+  isBreakpointValue,
   DEFAULT_MODE,
+  DEFAULT_BREAKPOINT,
 } from './services/tokenRegistry'
-export type { ModeValue } from './services/tokenRegistry'
+export type { ModeValue, BreakpointValue } from './services/tokenRegistry'
 
 // Re-export all nice-styles public API
 export {

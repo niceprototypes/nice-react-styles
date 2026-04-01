@@ -12,11 +12,25 @@
 export const DEFAULT_MODE = "day"
 
 /**
- * Value with mode variants
- * Must include DEFAULT_MODE key, additional modes are optional
+ * Default breakpoint string value — mobile-first, so mobile is the base
+ */
+export const DEFAULT_BREAKPOINT = "mobile"
+
+/**
+ * Value with mode variants (day/night theming).
+ * Must include DEFAULT_MODE key, additional modes are optional.
  */
 export interface ModeValue {
   [mode: string]: string | number
+}
+
+/**
+ * Value with breakpoint variants (responsive sizing).
+ * Must include DEFAULT_BREAKPOINT key, additional breakpoints are optional.
+ * Mutually exclusive with ModeValue on the same token variant.
+ */
+export interface BreakpointValue {
+  [breakpoint: string]: string | number
 }
 
 /**
@@ -28,6 +42,20 @@ export function isModeValue(value: unknown): value is ModeValue {
     value !== null &&
     DEFAULT_MODE in value &&
     typeof (value as ModeValue)[DEFAULT_MODE] !== "undefined"
+  )
+}
+
+/**
+ * Check if a value is a breakpoint object (has DEFAULT_BREAKPOINT key).
+ * Checked before isModeValue — if a value has both "mobile" and "day" keys,
+ * it is treated as a breakpoint value.
+ */
+export function isBreakpointValue(value: unknown): value is BreakpointValue {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    DEFAULT_BREAKPOINT in value &&
+    typeof (value as BreakpointValue)[DEFAULT_BREAKPOINT] !== "undefined"
   )
 }
 
