@@ -1,6 +1,6 @@
 {
   "name": "nice-react-styles",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "type": "module",
   "description": "React provider component for nice-styles CSS variables with styled-components theme support",
   "main": "dist/index.js",
@@ -44,7 +44,8 @@
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "styled-components": "6.1.19",
     "tslib": "^2.6.2",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "nice-configuration": "file:../nice-configuration"
   },
   "publishConfig": {
     "access": "public",
