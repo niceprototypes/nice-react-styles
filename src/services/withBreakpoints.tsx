@@ -18,7 +18,9 @@ export type BreakpointOverrideProps<P> = Partial<P> | ((base: P) => Partial<P>)
  * A single entry in the `breakpoints` prop array.
  *
  * At least one of `min` or `max` must be defined — a runtime guard throws if
- * both are missing. TypeScript enforces the same via the union.
+ * both are missing. (A union-based type-level guard was tried, but it breaks
+ * TypeScript's contextual inference of the `base` parameter in the function
+ * form of `props`, so the check is enforced at runtime only.)
  *
  * - `min` (inclusive): override activates when the current breakpoint is this
  *   name or wider.
@@ -26,9 +28,11 @@ export type BreakpointOverrideProps<P> = Partial<P> | ((base: P) => Partial<P>)
  *   name or narrower.
  * - Providing both scopes the override to a range (e.g. medium-only).
  */
-export type BreakpointOverride<P> =
-  | { min: BreakpointName; max?: BreakpointName; props: BreakpointOverrideProps<P> }
-  | { min?: BreakpointName; max: BreakpointName; props: BreakpointOverrideProps<P> }
+export type BreakpointOverride<P> = {
+  min?: BreakpointName
+  max?: BreakpointName
+  props: BreakpointOverrideProps<P>
+}
 
 /**
  * Props shape returned by `withBreakpoints(Component)` — the original props
