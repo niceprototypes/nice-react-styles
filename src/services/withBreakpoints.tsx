@@ -8,6 +8,13 @@ import {
 import { useBreakpoint } from "./useBreakpoint"
 
 /**
+ * `props` field shape — either a flat partial override or a function that
+ * receives the base props and returns a partial override. The function form
+ * enables deriving one prop from another (swap, compose, move slots).
+ */
+export type BreakpointOverrideProps<P> = Partial<P> | ((base: P) => Partial<P>)
+
+/**
  * A single entry in the `breakpoints` prop array.
  *
  * At least one of `min` or `max` must be defined — a runtime guard throws if
@@ -20,8 +27,8 @@ import { useBreakpoint } from "./useBreakpoint"
  * - Providing both scopes the override to a range (e.g. medium-only).
  */
 export type BreakpointOverride<P> =
-  | { min: BreakpointName; max?: BreakpointName; props: Partial<P> }
-  | { min?: BreakpointName; max: BreakpointName; props: Partial<P> }
+  | { min: BreakpointName; max?: BreakpointName; props: BreakpointOverrideProps<P> }
+  | { min?: BreakpointName; max: BreakpointName; props: BreakpointOverrideProps<P> }
 
 /**
  * Props shape returned by `withBreakpoints(Component)` — the original props
@@ -62,19 +69,35 @@ const matches = (
  * already accepts — and any prop ever added to it later — is automatically
  * responsive without per-prop plumbing.
  *
- * @example
- * const ResponsiveTile = withBreakpoints(Tile)
+ * `props` may be either a flat `Partial<P>` object or a function
+ * `(base) => Partial<P>`. The function form receives the base props and can
+ * derive an override from them — useful for moving elements between slots
+ * (e.g. `contentLeft` → `contentRight`) without naming the element twice.
  *
+ * @example
+ * // Flat form
  * <ResponsiveTile
  *   spacing="base"
- *   maxWidthLarge={800}
  *   breakpoints={[
- *     { min: BREAKPOINT_MEDIUM, max: BREAKPOINT_MEDIUM, props: { spacing: "large" } },
- *     { min: BREAKPOINT_LARGE, props: { spacing: "larger", maxWidthLarge: 1200 } },
+ *     { min: "medium", max: "medium", props: { spacing: "large" } },
+ *     { min: "large", props: { spacing: "larger", maxWidthLarge: 1200 } },
  *   ]}
- * >
- *   ...
- * </ResponsiveTile>
+ * >...</ResponsiveTile>
+ *
+ * @example
+ * // Function form — swap slots without naming the element twice
+ * <ResponsiveTile
+ *   contentLeft={<Avatar />}
+ *   breakpoints={[
+ *     {
+ *       min: "large",
+ *       props: (base) => ({
+ *         contentLeft: undefined,
+ *         contentRight: base.contentLeft,
+ *       }),
+ *     },
+ *   ]}
+ * >...</ResponsiveTile>
  */
 export function withBreakpoints<P extends object>(
   Component: React.ComponentType<P>
@@ -82,6 +105,7 @@ export function withBreakpoints<P extends object>(
   const Wrapped: React.FC<WithBreakpointsProps<P>> = (allProps) => {
     const { breakpoints, ...base } = allProps as WithBreakpointsProps<P> & { breakpoints?: BreakpointOverride<P>[] }
     const current = useBreakpoint()
+    const baseProps = base as unknown as P
 
     // Runtime guard — each entry must define at least one bound
     const overrides: Partial<P> = {}
@@ -92,11 +116,12 @@ export function withBreakpoints<P extends object>(
         )
       }
       if (matches(current, entry.min, entry.max)) {
-        Object.assign(overrides, entry.props)
+        const resolved = typeof entry.props === "function" ? entry.props(baseProps) : entry.props
+        Object.assign(overrides, resolved)
       }
     }
 
-    return <Component {...(base as unknown as P)} {...overrides} />
+    return <Component {...baseProps} {...overrides} />
   }
   Wrapped.displayName = `withBreakpoints(${Component.displayName ?? Component.name ?? "Component"})`
   return Wrapped
