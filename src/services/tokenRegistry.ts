@@ -1,6 +1,7 @@
  import {
   Theme,
   getTokenFromMap,
+  BREAKPOINT_SMALL,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
@@ -12,9 +13,9 @@
 export const DEFAULT_MODE = "day"
 
 /**
- * Default breakpoint string value — mobile-first, so mobile is the base
+ * Default breakpoint string value — small-first, so small is the base
  */
-export const DEFAULT_BREAKPOINT = "mobile"
+export const DEFAULT_BREAKPOINT = BREAKPOINT_SMALL
 
 /**
  * Value with mode variants (day/night theming).
@@ -47,7 +48,7 @@ export function isModeValue(value: unknown): value is ModeValue {
 
 /**
  * Check if a value is a breakpoint object (has DEFAULT_BREAKPOINT key).
- * Checked before isModeValue — if a value has both "mobile" and "day" keys,
+ * Checked before isModeValue — if a value has both "small" and "day" keys,
  * it is treated as a breakpoint value.
  */
 export function isBreakpointValue(value: unknown): value is BreakpointValue {

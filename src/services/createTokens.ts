@@ -5,6 +5,8 @@ import {
   getConstant,
   getBreakpoint,
   componentTokensData,
+  BREAKPOINT_MEDIUM,
+  BREAKPOINT_LARGE,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
@@ -64,7 +66,7 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  * Handles three value shapes:
  * - Simple value: `"16px"` → single :root declaration
  * - ModeValue: `{ day: "#000", night: "#fff" }` → default + mode primitives + mode media entries
- * - BreakpointValue: `{ mobile: "14px", desktop: "20px" }` → default + breakpoint primitives + breakpoint media entries
+ * - BreakpointValue: `{ small: "14px", large: "20px" }` → default + breakpoint primitives + breakpoint media entries
  *
  * BreakpointValue is checked before ModeValue — they are mutually exclusive on the same variant.
  *
@@ -85,14 +87,14 @@ function processVariants(
 ): void {
   for (const [variant, value] of Object.entries(variants)) {
     if (isBreakpointValue(value)) {
-      // Breakpoint value — semantic variable gets the default breakpoint (mobile) value
+      // Breakpoint value — semantic variable gets the default breakpoint (small) value
       const defaultValue = value[DEFAULT_BREAKPOINT]
       const cssVar = getConstant(cssName, variant, { pkg })
       defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
 
       for (const [breakpoint, bpValue] of Object.entries(value)) {
         if (breakpoint !== DEFAULT_BREAKPOINT) {
-          // Non-default breakpoint primitive — stable reference (e.g., --*--desktop: value)
+          // Non-default breakpoint primitive — stable reference (e.g., --*--large: value)
           const bpCssVar = getConstant(cssName, variant, { breakpoint, pkg })
           defaultDeclarations.push(`${bpCssVar.key}: ${bpValue};`)
 
@@ -171,11 +173,11 @@ function processVariants(
  * createTokens(AppTokens, "app", { colorSchemeEnabled: true })
  *
  * @example
- * // Breakpoint-aware tokens (mobile-first, always active)
+ * // Breakpoint-aware tokens (small-first, always active)
  * const AppTokens = {
  *   fontSize: {
- *     base: { mobile: "16px", desktop: "20px" },
- *     large: { mobile: "22px", desktop: "28px" },
+ *     base: { small: "16px", large: "20px" },
+ *     large: { small: "22px", large: "28px" },
  *   }
  * } as const
  */
@@ -246,7 +248,7 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
     }
   }
 
-  // Breakpoint declarations — keyed by non-default breakpoint name (e.g., "tablet", "desktop")
+  // Breakpoint declarations — keyed by non-default breakpoint name (e.g., "medium", "large")
   const breakpointDeclarations: Map<string, string[]> = new Map()
   for (const bp of breakpoints) {
     if (bp !== DEFAULT_BREAKPOINT) {
@@ -287,11 +289,11 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
     }
   }
 
-  // Breakpoint media queries — always active (not opt-in), mobile-first via min-width
+  // Breakpoint media queries — always active (not opt-in), small-first via min-width
   // Breakpoint query map: breakpoint name → media query string
   const breakpointQueries: Record<string, string> = {
-    tablet: getBreakpoint("tablet").query,
-    desktop: getBreakpoint("desktop").query,
+    [BREAKPOINT_MEDIUM]: getBreakpoint(BREAKPOINT_MEDIUM).query,
+    [BREAKPOINT_LARGE]: getBreakpoint(BREAKPOINT_LARGE).query,
   }
 
   for (const [bp, declarations] of breakpointDeclarations.entries()) {

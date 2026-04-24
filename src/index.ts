@@ -62,6 +62,7 @@ export type {
   AnimationDurationType,
   AnimationEasingType,
   BackgroundColorType,
+  BackgroundSizeType,
   BorderColorType,
   BorderRadiusType,
   BorderWidthType,
