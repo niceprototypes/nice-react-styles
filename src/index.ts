@@ -8,6 +8,9 @@ export { StylesProvider } from './components/StylesProvider'
 // Service exports
 export { createTokens } from './services/createTokens'
 export type { ComponentTokens } from './services/createTokens'
+export { useBreakpoint } from './services/useBreakpoint'
+export { withBreakpoints } from './services/withBreakpoints'
+export type { BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 
 // Token registry - unified token access
 export {
