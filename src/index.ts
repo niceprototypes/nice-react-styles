@@ -43,6 +43,10 @@ export {
   camelToKebab,
   Theme,
   componentTokensData,
+  BREAKPOINT_SMALL,
+  BREAKPOINT_MEDIUM,
+  BREAKPOINT_LARGE,
+  BREAKPOINTS,
 } from 'nice-styles'
 
 export type {
@@ -51,6 +55,7 @@ export type {
   ComponentPrefix,
   BreakpointResult,
   BreakpointName,
+  BreakpointValues,
   CoreTokenConfig,
   CssConstantResult,
   CssConstantOptions,
