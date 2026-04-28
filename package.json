@@ -1,6 +1,6 @@
 {
   "name": "nice-react-styles",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "type": "module",
   "description": "React provider component for nice-styles CSS variables with styled-components theme support",
   "main": "dist/index.js",
