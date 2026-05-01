@@ -2,6 +2,22 @@
  * Shared type definitions for nice-react-styles
  */
 
+import type { BreakpointName } from "nice-styles"
+
+/**
+ * Generic responsive prop shape used across component packages.
+ *
+ * A prop typed `Breakpoints<T>` accepts either a bare value applied at every
+ * breakpoint, or an object mapping breakpoint names ("small" / "medium" /
+ * "large") to per-breakpoint values. Components emit per-breakpoint CSS
+ * (or pass to a responsive helper) based on which keys are present.
+ *
+ * Example:
+ *   gap?: Breakpoints<GapType>
+ *   // accepts: "base" | { small: "none", medium: "base", large: "large" }
+ */
+export type Breakpoints<T> = T | { [B in BreakpointName]?: T }
+
 /**
  * Variable font axis configuration
  * Represents a single axis in a variable font (e.g., wght, opsz, ROND)

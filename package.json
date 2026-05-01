@@ -36,6 +36,7 @@
     "@rollup/plugin-typescript": "^11.1.5",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "nice-configuration": "file:../configuration",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "rollup": "^4.9.1",
@@ -43,8 +44,7 @@
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "styled-components": "6.1.19",
     "tslib": "^2.6.2",
-    "typescript": "^5.5.0",
-    "nice-configuration": "file:../nice-configuration"
+    "typescript": "^6.0.3"
   },
   "publishConfig": {
     "access": "public",
@@ -73,6 +73,6 @@
   },
   "homepage": "https://github.com/niceprototypes/nice-react-styles#readme",
   "dependencies": {
-    "nice-styles": "file:../nice-styles"
+    "nice-styles": "file:../styles"
   }
 }

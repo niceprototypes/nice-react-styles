@@ -94,4 +94,4 @@ export type {
 
 // Type exports
 export type { StylesProviderProps } from './components/StylesProvider/types'
-export type { GoogleFontsConfig, LinkAttributes, GoogleFontMetadata, FontAxis } from './types'
+export type { Breakpoints, GoogleFontsConfig, LinkAttributes, GoogleFontMetadata, FontAxis } from './types'
