@@ -1,4 +1,4 @@
-import * as React from "react"
+  import * as React from "react"
 import {
   BREAKPOINT_SMALL,
   BREAKPOINT_MEDIUM,
@@ -97,7 +97,20 @@ function mergeOneLevel<T extends object>(base: T, override: Partial<T>): T {
  * min/max window covers the current breakpoint has its `props` merged over
  * the base props. Later matching entries win over earlier ones.
  *
+ * Optional `defaults` are prepended to the caller-provided `breakpoints` array
+ * — caller entries appear after defaults, so they win on overlap. This lets
+ * the component define its own breakpoint-aware base behavior without
+ * requiring every consumer to opt in.
+ *
  * @example
+ * // No defaults — breakpoints is purely caller-controlled.
+ * const ResponsiveTile = withBreakpoints<TileProps>(BaseTile)
+ *
+ * // With defaults — applied unless the caller overrides them.
+ * const DocsRow = withBreakpoints<DocsRowProps>(BaseDocsRow, [
+ *   { min: "medium", props: { previewCellWidth: "10em" } },
+ * ])
+ *
  * <ResponsiveTile
  *   spacing="base"
  *   breakpoints={[
@@ -107,7 +120,8 @@ function mergeOneLevel<T extends object>(base: T, override: Partial<T>): T {
  * >...</ResponsiveTile>
  */
 export function withBreakpoints<P extends object>(
-  Component: React.ComponentType<P>
+  Component: React.ComponentType<P>,
+  defaults?: BreakpointOverride<P>[]
 ): React.FC<WithBreakpointsProps<P>> {
   const Wrapped: React.FC<WithBreakpointsProps<P>> = (allProps) => {
     const { breakpoints, ...base } = allProps as WithBreakpointsProps<P> & { breakpoints?: BreakpointOverride<P>[] }
@@ -118,8 +132,13 @@ export function withBreakpoints<P extends object>(
     // Cumulatively merge matching entries' props one level deep, so nested
     // object props (titleProps, descriptionProps, style, ...) preserve
     // sibling keys when a breakpoint override only specifies a few.
+    // Defaults are evaluated first; caller entries follow so they win on overlap.
+    const allEntries = defaults && defaults.length > 0
+      ? [...defaults, ...(breakpoints ?? [])]
+      : (breakpoints ?? [])
+
     let working: P = baseProps
-    for (const entry of breakpoints ?? []) {
+    for (const entry of allEntries) {
       if (entry.min === undefined && entry.max === undefined) {
         throw new Error(
           "withBreakpoints: each entry in the `breakpoints` array must define `min`, `max`, or both."

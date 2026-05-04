@@ -11,16 +11,12 @@ import {
   type TokenMap,
   type TokenResult,
 } from "nice-styles"
-import {
-  registerTokens,
-  getToken as registryGetToken,
-  DEFAULT_MODE,
-  DEFAULT_BREAKPOINT,
-  isModeValue,
-  isBreakpointValue,
-  type ModeValue,
-  type BreakpointValue,
-} from "./tokenRegistry"
+import { registerTokens } from "./registerTokens"
+import { getToken as registryGetToken } from "./getToken"
+import { DEFAULT_MODE, DEFAULT_BREAKPOINT } from "./styleValues"
+import { isStyleValue } from "./isStyleValue"
+import type { ModeValue } from "./ModeValue"
+import type { BreakpointValue } from "./BreakpointValue"
 
 // Known component prefixes — used to detect 3-level token overrides
 const componentPrefixes = new Set(Object.keys(componentTokensData))
@@ -86,7 +82,7 @@ function processVariants(
   breakpointDeclarations: Map<string, string[]>
 ): void {
   for (const [variant, value] of Object.entries(variants)) {
-    if (isBreakpointValue(value)) {
+    if (isStyleValue("breakpoint", value)) {
       // Breakpoint value — semantic variable gets the default breakpoint (small) value
       const defaultValue = value[DEFAULT_BREAKPOINT]
       const cssVar = getConstant(cssName, variant, { pkg })
@@ -105,7 +101,7 @@ function processVariants(
           }
         }
       }
-    } else if (isModeValue(value)) {
+    } else if (isStyleValue("mode", value)) {
       // Mode value — semantic variable gets the default mode (day) value
       const defaultValue = value[DEFAULT_MODE]
       const cssVar = getConstant(cssName, variant, { pkg })
@@ -212,11 +208,11 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
    */
   function collectDimensions(variants: VariantMap, modes: Set<string>, breakpoints: Set<string>): void {
     for (const value of Object.values(variants)) {
-      if (isBreakpointValue(value)) {
+      if (isStyleValue("breakpoint", value)) {
         for (const bp of Object.keys(value)) {
           breakpoints.add(bp)
         }
-      } else if (isModeValue(value)) {
+      } else if (isStyleValue("mode", value)) {
         for (const mode of Object.keys(value)) {
           modes.add(mode)
         }

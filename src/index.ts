@@ -13,20 +13,18 @@ export { withBreakpoints } from './services/withBreakpoints'
 export type { BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 
 // Token registry - unified token access
-export {
-  getToken,
-  registerTokens,
-  hasToken,
-  getTokenNames,
-  getTokenVariants,
-  getTokenModes,
-  getTokenModeValue,
-  isModeValue,
-  isBreakpointValue,
-  DEFAULT_MODE,
-  DEFAULT_BREAKPOINT,
-} from './services/tokenRegistry'
-export type { ModeValue, BreakpointValue } from './services/tokenRegistry'
+export { getToken } from './services/getToken'
+export { registerTokens } from './services/registerTokens'
+export { hasToken } from './services/hasToken'
+export { getTokenNames } from './services/getTokenNames'
+export { getTokenVariants } from './services/getTokenVariants'
+export { getTokenModes } from './services/getTokenModes'
+export { getTokenModeValue } from './services/getTokenModeValue'
+export { isStyleValue } from './services/isStyleValue'
+export { DEFAULT_MODE, DEFAULT_BREAKPOINT } from './services/styleValues'
+export type { StyleValueKind } from './services/styleValues'
+export type { ModeValue } from './services/ModeValue'
+export type { BreakpointValue } from './services/BreakpointValue'
 
 // Re-export all nice-styles public API
 export {
