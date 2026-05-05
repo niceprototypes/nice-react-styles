@@ -1,7 +1,7 @@
 import { getTokenFromMap, type TokenDefinition, type TokenResult } from "nice-styles"
 import { DEFAULT_MODE } from "./styleValues"
 import { isStyleValue } from "./isStyleValue"
-import { registry, type RegistryEntry } from "../utilities/registry"
+import { registry, type RegistryEntry } from "./registry"
 
 /**
  * Extract default mode variants from an entry (for getTokenFromMap compatibility)

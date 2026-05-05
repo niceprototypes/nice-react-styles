@@ -8,7 +8,7 @@
 import { useMemo } from 'react'
 import { Theme } from 'nice-styles'
 import { FontLoader } from '../FontLoader'
-import { parseGoogleFontsUrl } from '../../utilities/parseFontUrl'
+import { parseGoogleFontsUrl } from '../../services/parseGoogleFontsUrl'
 import { ThemeProvider } from './styled'
 import type { StylesProviderProps } from './types'
 import type { GoogleFontsConfig, LinkAttributes } from '../../types'

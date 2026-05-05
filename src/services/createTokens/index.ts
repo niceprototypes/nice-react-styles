@@ -1,5 +1,5 @@
 import type { ComponentType } from "react"
-import { injectTokenCSS } from "../utilities/tokenStyleSheet"
+import { injectTokenCSS } from "./tokenStyleSheet"
 import {
   camelToKebab,
   getConstant,
@@ -11,12 +11,12 @@ import {
   type TokenMap,
   type TokenResult,
 } from "nice-styles"
-import { registerTokens } from "./registerTokens"
-import { getToken as registryGetToken } from "./getToken"
-import { DEFAULT_MODE, DEFAULT_BREAKPOINT } from "./styleValues"
-import { isStyleValue } from "./isStyleValue"
-import type { ModeValue } from "./ModeValue"
-import type { BreakpointValue } from "./BreakpointValue"
+import { registerTokens } from "../registerTokens"
+import { getToken as registryGetToken } from "../getToken"
+import { DEFAULT_MODE, DEFAULT_BREAKPOINT } from "../styleValues"
+import { isStyleValue } from "../isStyleValue"
+import type { ModeValue } from "../ModeValue"
+import type { BreakpointValue } from "../BreakpointValue"
 
 // Known component prefixes — used to detect 3-level token overrides
 const componentPrefixes = new Set(Object.keys(componentTokensData))

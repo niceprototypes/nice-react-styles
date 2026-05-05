@@ -2,7 +2,7 @@ import type { TokenMap } from "nice-styles"
 import { DEFAULT_MODE } from "./styleValues"
 import { isStyleValue } from "./isStyleValue"
 import type { ModeValue } from "./ModeValue"
-import { registry } from "../utilities/registry"
+import { registry } from "./registry"
 
 /**
  * Register tokens into the unified registry.
