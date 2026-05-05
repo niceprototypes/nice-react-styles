@@ -3,4 +3,4 @@
  */
 
 export { StylesProvider } from './StylesProvider'
-export type { StylesProviderProps } from './types'
+export type { StylesProviderProps } from './StylesProvider.types'

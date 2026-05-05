@@ -83,5 +83,5 @@ export type {
 } from 'nice-styles'
 
 // Type exports
-export type { StylesProviderProps } from './components/StylesProvider/types'
+export type { StylesProviderProps } from './components/StylesProvider/StylesProvider.types'
 export type { Breakpoints, GoogleFontsConfig, LinkAttributes, GoogleFontMetadata, FontAxis } from './types'

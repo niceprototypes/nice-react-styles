@@ -4,7 +4,7 @@
  * Renders link elements for optimal Google Fonts loading with preconnect optimization
  */
 
-import type { FontLoaderProps } from './types'
+import type { FontLoaderProps } from './FontLoader.types'
 
 /**
  * Renders optimized link elements for loading external fonts
