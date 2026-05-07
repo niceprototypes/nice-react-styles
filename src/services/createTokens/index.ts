@@ -5,8 +5,9 @@ import {
   getConstant,
   getBreakpoint,
   componentTokensData,
-  BREAKPOINT_MEDIUM,
-  BREAKPOINT_LARGE,
+  BREAKPOINT_TABLET,
+  BREAKPOINT_LAPTOP,
+  BREAKPOINT_DESKTOP,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
@@ -83,14 +84,14 @@ function processVariants(
 ): void {
   for (const [variant, value] of Object.entries(variants)) {
     if (isStyleValue("breakpoint", value)) {
-      // Breakpoint value — semantic variable gets the default breakpoint (small) value
+      // Breakpoint value — semantic variable gets the default breakpoint (phone) value
       const defaultValue = value[DEFAULT_BREAKPOINT]
       const cssVar = getConstant(cssName, variant, { pkg })
       defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
 
       for (const [breakpoint, bpValue] of Object.entries(value)) {
         if (breakpoint !== DEFAULT_BREAKPOINT) {
-          // Non-default breakpoint primitive — stable reference (e.g., --*--large: value)
+          // Non-default breakpoint primitive — stable reference (e.g., --*--laptop: value)
           const bpCssVar = getConstant(cssName, variant, { breakpoint, pkg })
           defaultDeclarations.push(`${bpCssVar.key}: ${bpValue};`)
 
@@ -169,11 +170,11 @@ function processVariants(
  * createTokens(AppTokens, "app", { colorSchemeEnabled: true })
  *
  * @example
- * // Breakpoint-aware tokens (small-first, always active)
+ * // Breakpoint-aware tokens (phone-first, always active)
  * const AppTokens = {
  *   fontSize: {
- *     base: { small: "16px", large: "20px" },
- *     large: { small: "22px", large: "28px" },
+ *     base: { phone: "16px", laptop: "20px" },
+ *     large: { phone: "22px", laptop: "28px", desktop: "32px" },
  *   }
  * } as const
  */
@@ -285,11 +286,12 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
     }
   }
 
-  // Breakpoint media queries — always active (not opt-in), small-first via min-width
+  // Breakpoint media queries — always active (not opt-in), phone-first via min-width
   // Breakpoint query map: breakpoint name → media query string
   const breakpointQueries: Record<string, string> = {
-    [BREAKPOINT_MEDIUM]: getBreakpoint(BREAKPOINT_MEDIUM).query,
-    [BREAKPOINT_LARGE]: getBreakpoint(BREAKPOINT_LARGE).query,
+    [BREAKPOINT_TABLET]: getBreakpoint(BREAKPOINT_TABLET).query,
+    [BREAKPOINT_LAPTOP]: getBreakpoint(BREAKPOINT_LAPTOP).query,
+    [BREAKPOINT_DESKTOP]: getBreakpoint(BREAKPOINT_DESKTOP).query,
   }
 
   for (const [bp, declarations] of breakpointDeclarations.entries()) {

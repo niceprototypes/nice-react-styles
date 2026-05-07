@@ -1,4 +1,4 @@
-import { BREAKPOINT_SMALL, BREAKPOINT_MEDIUM, BREAKPOINT_LARGE } from "nice-styles"
+import { BREAKPOINT_PHONE, BREAKPOINT_TABLET, BREAKPOINT_LAPTOP, BREAKPOINT_DESKTOP } from "nice-styles"
 
 /**
  * Default mode string value
@@ -6,9 +6,9 @@ import { BREAKPOINT_SMALL, BREAKPOINT_MEDIUM, BREAKPOINT_LARGE } from "nice-styl
 export const DEFAULT_MODE = "day"
 
 /**
- * Default breakpoint string value — small-first, so small is the base
+ * Default breakpoint string value — phone-first, so phone is the base
  */
-export const DEFAULT_BREAKPOINT = BREAKPOINT_SMALL
+export const DEFAULT_BREAKPOINT = BREAKPOINT_PHONE
 
 /**
  * Valid keys per style-value kind. The first entry is the discriminator
@@ -17,7 +17,7 @@ export const DEFAULT_BREAKPOINT = BREAKPOINT_SMALL
  */
 export const STYLE_VALUE_KEYS = {
   mode: [DEFAULT_MODE, "night"],
-  breakpoint: [DEFAULT_BREAKPOINT, BREAKPOINT_MEDIUM, BREAKPOINT_LARGE],
+  breakpoint: [DEFAULT_BREAKPOINT, BREAKPOINT_TABLET, BREAKPOINT_LAPTOP, BREAKPOINT_DESKTOP],
 } as const
 
 export type StyleValueKind = keyof typeof STYLE_VALUE_KEYS

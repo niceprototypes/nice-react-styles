@@ -7,7 +7,7 @@ import type { RegistryEntry } from "./createRegistry"
  *
  * - `data` is shaped { [dim]: { [tokenName]: { [variant]: cssValue } } } where
  *   `dim` is a mode (day/night) for color tokens or a breakpoint
- *   (small/medium/large) for size tokens.
+ *   (phone/tablet/laptop) for size tokens.
  * - `defaultDim` defines the variant set used to enumerate registry entries.
  * - `modesForEntry` is what's recorded on each registry entry's `modes` Set;
  *   color modules pass their full mode set, size modules pass DEFAULT_MODE only

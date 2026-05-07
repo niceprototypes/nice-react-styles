@@ -1,24 +1,26 @@
 import { useSyncExternalStore } from "react"
 import {
   BREAKPOINTS,
-  BREAKPOINT_SMALL,
-  BREAKPOINT_MEDIUM,
-  BREAKPOINT_LARGE,
+  BREAKPOINT_PHONE,
+  BREAKPOINT_TABLET,
+  BREAKPOINT_LAPTOP,
+  BREAKPOINT_DESKTOP,
   type BreakpointName,
 } from "nice-styles"
 
 /**
  * Compute the current viewport's breakpoint name from `window.innerWidth`.
  *
- * During SSR (no window), defaults to the small breakpoint — matches the
- * small-first philosophy used by the CSS layer.
+ * During SSR (no window), defaults to the phone breakpoint — matches the
+ * phone-first philosophy used by the CSS layer.
  */
 const getCurrent = (): BreakpointName => {
-  if (typeof window === "undefined") return BREAKPOINT_SMALL
+  if (typeof window === "undefined") return BREAKPOINT_PHONE
   const width = window.innerWidth
-  if (width >= BREAKPOINTS[BREAKPOINT_LARGE]) return BREAKPOINT_LARGE
-  if (width > BREAKPOINTS[BREAKPOINT_SMALL]) return BREAKPOINT_MEDIUM
-  return BREAKPOINT_SMALL
+  if (width >= BREAKPOINTS[BREAKPOINT_DESKTOP]) return BREAKPOINT_DESKTOP
+  if (width >= BREAKPOINTS[BREAKPOINT_LAPTOP]) return BREAKPOINT_LAPTOP
+  if (width > BREAKPOINTS[BREAKPOINT_PHONE]) return BREAKPOINT_TABLET
+  return BREAKPOINT_PHONE
 }
 
 const subscribe = (onChange: () => void): (() => void) => {
@@ -31,19 +33,19 @@ const subscribe = (onChange: () => void): (() => void) => {
  * Subscribes to viewport-width changes and returns the current breakpoint name.
  *
  * Uses `useSyncExternalStore` for tear-free reads and stable SSR output.
- * The server snapshot is always `BREAKPOINT_SMALL` — if the server rendered
+ * The server snapshot is always `BREAKPOINT_PHONE` — if the server rendered
  * at a larger breakpoint, the component re-renders on hydration.
  *
- * @returns The active breakpoint name — one of `BREAKPOINT_SMALL` /
- *   `BREAKPOINT_MEDIUM` / `BREAKPOINT_LARGE`.
+ * @returns The active breakpoint name — one of `BREAKPOINT_PHONE` /
+ *   `BREAKPOINT_TABLET` / `BREAKPOINT_LAPTOP` / `BREAKPOINT_DESKTOP`.
  *
  * @example
- * import { useBreakpoint, BREAKPOINT_LARGE } from "nice-react-styles"
+ * import { useBreakpoint, BREAKPOINT_DESKTOP } from "nice-react-styles"
  *
  * const Component = () => {
  *   const bp = useBreakpoint()
- *   return <div>{bp === BREAKPOINT_LARGE ? "desktop view" : "compact view"}</div>
+ *   return <div>{bp === BREAKPOINT_DESKTOP ? "wide view" : "compact view"}</div>
  * }
  */
 export const useBreakpoint = (): BreakpointName =>
-  useSyncExternalStore(subscribe, getCurrent, () => BREAKPOINT_SMALL)
+  useSyncExternalStore(subscribe, getCurrent, () => BREAKPOINT_PHONE)

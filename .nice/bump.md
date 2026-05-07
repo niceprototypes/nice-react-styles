@@ -1,1 +1,2 @@
 [2026-05-03 17:00] major: Replace isModeValue and isBreakpointValue with unified isStyleValue("mode" | "breakpoint", value); split tokenRegistry.ts into per-function files
+[2026-05-07 01:30] major: Re-export renamed breakpoint constants (BREAKPOINT_PHONE/TABLET/LAPTOP/DESKTOP); update createTokens and withBreakpoints to phone-first naming

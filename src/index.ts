@@ -36,9 +36,10 @@ export {
   camelToKebab,
   Theme,
   componentTokensData,
-  BREAKPOINT_SMALL,
-  BREAKPOINT_MEDIUM,
-  BREAKPOINT_LARGE,
+  BREAKPOINT_PHONE,
+  BREAKPOINT_TABLET,
+  BREAKPOINT_LAPTOP,
+  BREAKPOINT_DESKTOP,
   BREAKPOINTS,
 } from 'nice-styles'
 

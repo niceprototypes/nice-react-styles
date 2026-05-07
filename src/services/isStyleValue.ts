@@ -10,7 +10,7 @@ interface StyleValueByKind {
 /**
  * Check if a value is a style-value object of the given kind.
  *
- * Discriminates by the kind's default key (`"day"` for mode, `"small"` for
+ * Discriminates by the kind's default key (`"day"` for mode, `"phone"` for
  * breakpoint). When a value has both kinds' default keys, callers should
  * check `"breakpoint"` first.
  */
