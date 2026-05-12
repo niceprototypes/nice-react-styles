@@ -22,8 +22,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "react": ">=19.2.0 <20.0.0",
