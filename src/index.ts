@@ -12,7 +12,7 @@ export { withBreakpoints } from './services/withBreakpoints'
 export type { BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 
 // Token registry - unified token access
-export { getToken } from './services/getToken'
+export { getReactToken } from './services/getReactToken'
 export { DEFAULT_MODE, DEFAULT_BREAKPOINT } from './services/styleValues'
 export type { StyleValueKind } from './services/styleValues'
 export type { ModeValue } from './services/ModeValue'

@@ -13,7 +13,7 @@ import {
   type TokenResult,
 } from "nice-styles"
 import { registerTokens } from "../registerTokens"
-import { getToken as registryGetToken } from "../getToken"
+import { getReactToken as registryGetToken } from "../getReactToken"
 import { DEFAULT_MODE, DEFAULT_BREAKPOINT } from "../styleValues"
 import { isStyleValue } from "../isStyleValue"
 import type { ModeValue } from "../ModeValue"
@@ -28,7 +28,7 @@ const componentPrefixes = new Set(Object.keys(componentTokensData))
 type VariantKeys<T extends TokenDefinition> = keyof T
 
 /**
- * Typed getToken function that accepts token name and variant.
+ * Typed getReactToken function that accepts token name and variant.
  */
 type GetTokenFn<T extends TokenMap> = {
   <K extends keyof T, V extends VariantKeys<T[K]>>(tokenName: K, variant?: V, mode?: string): TokenResult
@@ -46,9 +46,9 @@ export interface ComponentTokens<T extends TokenMap> {
 
   /**
    * Reference to the unified token accessor.
-   * @deprecated Import getToken directly from nice-react-styles instead.
+   * @deprecated Import getReactToken directly from nice-react-styles instead.
    */
-  getToken: GetTokenFn<T>
+  getReactToken: GetTokenFn<T>
 }
 
 /**
@@ -318,6 +318,6 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
 
   return {
     GlobalStyles,
-    getToken: registryGetToken as GetTokenFn<T extends TokenMap ? T : TokenMap>,
+    getReactToken: registryGetToken as GetTokenFn<T extends TokenMap ? T : TokenMap>,
   }
 }

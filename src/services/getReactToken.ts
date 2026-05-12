@@ -26,7 +26,7 @@ function getDefaultVariants(entry: RegistryEntry): TokenDefinition {
  * @param mode - Optional theme mode (e.g., "dark")
  * @returns TokenResult with key, var, and value properties
  */
-export function getToken(name: string, variant = "base", mode?: string): TokenResult {
+export function getReactToken(name: string, variant = "base", mode?: string): TokenResult {
   const entry = registry.get(name)
   if (entry) {
     const defaultVariants = getDefaultVariants(entry)
