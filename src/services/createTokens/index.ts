@@ -289,9 +289,9 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
   // Breakpoint media queries — always active (not opt-in), phone-first via min-width
   // Breakpoint query map: breakpoint name → media query string
   const breakpointQueries: Record<string, string> = {
-    [BREAKPOINT_TABLET]: getBreakpoint(BREAKPOINT_TABLET).query,
-    [BREAKPOINT_LAPTOP]: getBreakpoint(BREAKPOINT_LAPTOP).query,
-    [BREAKPOINT_DESKTOP]: getBreakpoint(BREAKPOINT_DESKTOP).query,
+    [BREAKPOINT_TABLET]: getBreakpoint(BREAKPOINT_TABLET),
+    [BREAKPOINT_LAPTOP]: getBreakpoint(BREAKPOINT_LAPTOP),
+    [BREAKPOINT_DESKTOP]: getBreakpoint(BREAKPOINT_DESKTOP),
   }
 
   for (const [bp, declarations] of breakpointDeclarations.entries()) {

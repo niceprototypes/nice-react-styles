@@ -21,6 +21,7 @@ export type { BreakpointValue } from './services/BreakpointValue'
 // Re-export all nice-styles public API
 export {
   getBreakpoint,
+  getBreakpointValue,
   getColorToken,
   getSizeToken,
   setCoreTokens,
@@ -47,7 +48,6 @@ export type {
   // Token result types
   TokenResult,
   ComponentPrefix,
-  BreakpointResult,
   BreakpointName,
   BreakpointValues,
   CoreTokenConfig,
