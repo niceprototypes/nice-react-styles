@@ -4,10 +4,12 @@ import {
   camelToKebab,
   getConstant,
   getBreakpoint,
+  setBreakpoints,
   componentTokensData,
   BREAKPOINT_TABLET,
   BREAKPOINT_LAPTOP,
   BREAKPOINT_DESKTOP,
+  type BreakpointValues,
   type TokenDefinition,
   type TokenMap,
   type TokenResult,
@@ -186,17 +188,27 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
   type VariantValue = string | number | ModeValue | BreakpointValue
   type VariantMap = Record<string, VariantValue>
 
-  // Separate flat tokens from component token overrides
+  // Separate flat tokens from component token overrides and breakpoint config
   const flatTokens: Record<string, VariantMap> = {}
   const componentOverrides: Record<string, Record<string, VariantMap>> = {}
+  let breakpointOverrides: Partial<BreakpointValues> | undefined
 
   for (const [key, value] of Object.entries(tokenMap)) {
-    if (componentPrefixes.has(key)) {
+    if (key === "breakpoints") {
+      // Breakpoint thresholds — forward to setBreakpoints, do not register as tokens
+      breakpointOverrides = value as Partial<BreakpointValues>
+    } else if (componentPrefixes.has(key)) {
       // Component prefix — expect 3-level structure: prefix -> tokenName -> variant
       componentOverrides[key] = value as Record<string, VariantMap>
     } else {
       flatTokens[key] = value as VariantMap
     }
+  }
+
+  // Apply breakpoint overrides before any token CSS is emitted so the
+  // @media thresholds used below reflect the new values.
+  if (breakpointOverrides) {
+    setBreakpoints(breakpointOverrides)
   }
 
   // Register flat tokens only — component overrides work via CSS variable cascade
