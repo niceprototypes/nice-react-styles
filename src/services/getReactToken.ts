@@ -1,7 +1,13 @@
-import { getTokenFromMap, type TokenDefinition, type TokenResult } from "nice-styles"
+import { getTokenFromMap, type TokenDefinition } from "nice-styles"
 import { DEFAULT_MODE } from "./styleValues"
 import { isStyleValue } from "./isStyleValue"
 import { registry, type RegistryEntry } from "./registry"
+
+interface InternalTokenResult {
+  key: string
+  var: string
+  value: string
+}
 
 /**
  * Extract default mode variants from an entry (for getTokenFromMap compatibility)
@@ -20,9 +26,9 @@ function getDefaultVariants(entry: RegistryEntry): TokenDefinition {
 
 /**
  * Internal — resolves a token through the registry and returns the full
- * { key, var, value } TokenResult. Shared by all three public getters.
+ * { key, var, value } result. Shared by all three public getters.
  */
-function resolveReactToken(name: string, variant: string, mode?: string): TokenResult {
+function resolveReactToken(name: string, variant: string, mode?: string): InternalTokenResult {
   const entry = registry.get(name)
   if (entry) {
     const defaultVariants = getDefaultVariants(entry)
@@ -33,15 +39,13 @@ function resolveReactToken(name: string, variant: string, mode?: string): TokenR
 }
 
 /**
- * Unified token accessor — queries all registered tokens.
+ * Returns the `var(--np--…)` reference for a registered token — the common
+ * case in styled-components template literals and inline styles.
  *
- * @param name - The camelCase token name
- * @param variant - The variant key (default: "base")
- * @param mode - Optional theme mode (e.g., "dark")
- * @returns TokenResult with key, var, and value properties
+ * @example getReactToken("fontSize", "base") // → "var(--np--font-size--base)"
  */
-export function getReactToken(name: string, variant = "base", mode?: string): TokenResult {
-  return resolveReactToken(name, variant, mode)
+export function getReactToken(name: string, variant = "base", mode?: string): string {
+  return resolveReactToken(name, variant, mode).var
 }
 
 /**

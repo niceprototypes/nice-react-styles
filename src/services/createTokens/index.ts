@@ -12,7 +12,6 @@ import {
   type BreakpointValues,
   type TokenDefinition,
   type TokenMap,
-  type TokenResult,
 } from "nice-styles"
 import { registerTokens } from "../registerTokens"
 import { getReactToken as registryGetToken } from "../getReactToken"
@@ -31,10 +30,11 @@ type VariantKeys<T extends TokenDefinition> = keyof T
 
 /**
  * Typed getReactToken function that accepts token name and variant.
+ * Returns the `var(--np--…)` reference string.
  */
 type GetTokenFn<T extends TokenMap> = {
-  <K extends keyof T, V extends VariantKeys<T[K]>>(tokenName: K, variant?: V, mode?: string): TokenResult
-  (tokenName: string, variant?: string, mode?: string): TokenResult
+  <K extends keyof T, V extends VariantKeys<T[K]>>(tokenName: K, variant?: V, mode?: string): string
+  (tokenName: string, variant?: string, mode?: string): string
 }
 
 /**
