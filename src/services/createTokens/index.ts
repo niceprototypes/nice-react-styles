@@ -1,335 +1,54 @@
 import type { ComponentType } from "react"
-import { injectTokenCSS } from "./tokenStyleSheet"
 import {
-  camelToKebab,
-  getConstant,
-  getBreakpoint,
-  setBreakpoints,
-  componentTokensData,
-  BREAKPOINT_TABLET,
-  BREAKPOINT_LAPTOP,
-  BREAKPOINT_DESKTOP,
-  type BreakpointValues,
-  type TokenDefinition,
+  generateTokenCSS,
+  injectTokenCSS,
   type TokenMap,
+  type ModeValue,
 } from "nice-styles"
-import { registerTokens } from "../registerTokens"
-import { getReactToken as registryGetToken } from "../getReactToken"
-import { DEFAULT_MODE, DEFAULT_BREAKPOINT } from "../styleValues"
-import { isStyleValue } from "../isStyleValue"
-import type { ModeValue } from "../ModeValue"
-import type { BreakpointValue } from "../BreakpointValue"
-
-// Known component prefixes — used to detect 3-level token overrides
-const componentPrefixes = new Set(Object.keys(componentTokensData))
 
 /**
- * Extracts variant keys from a TokenDefinition
+ * Return type of createTokens.
  */
-type VariantKeys<T extends TokenDefinition> = keyof T
-
-/**
- * Typed getReactToken function that accepts token name and variant.
- * Returns the `var(--np--…)` reference string.
- */
-type GetTokenFn<T extends TokenMap> = {
-  <K extends keyof T, V extends VariantKeys<T[K]>>(tokenName: K, variant?: V, mode?: string): string
-  (tokenName: string, variant?: string, mode?: string): string
-}
-
-/**
- * Return type of createTokens
- */
-export interface ComponentTokens<T extends TokenMap> {
+export interface ComponentTokens {
   /**
-   * GlobalStyles component that injects CSS custom properties on :root
+   * No-op component kept for backwards compat. CSS is already injected by the
+   * time `createTokens` returns — rendering `<GlobalStyles />` is harmless.
    */
   GlobalStyles: ComponentType
-
-  /**
-   * Reference to the unified token accessor.
-   * @deprecated Import getReactToken directly from nice-react-styles instead.
-   */
-  getReactToken: GetTokenFn<T>
 }
 
-/**
- * Token map that supports mode values
- */
 type TokenMapWithModes = Record<string, Record<string, string | number | ModeValue>>
 
 /**
- * Processes variant entries into CSS declarations.
- * Shared by both flat tokens and component token overrides.
+ * React wrapper around `generateTokenCSS` from nice-styles. Builds the token
+ * CSS string and injects it into a shared `<style data-nice-tokens>` element.
  *
- * Handles three value shapes:
- * - Simple value: `"16px"` → single :root declaration
- * - ModeValue: `{ day: "#000", night: "#fff" }` → default + mode primitives + mode media entries
- * - BreakpointValue: `{ small: "14px", large: "20px" }` → default + breakpoint primitives + breakpoint media entries
+ * Top-level keys of the token map are auto-classified by `generateTokenCSS`:
+ * - Known component prefixes (`button`, `icon`, `tile`, …) → 3-level component
+ *   token overrides.
+ * - The literal key `breakpoints` → runtime breakpoint-threshold overrides,
+ *   forwarded to `setBreakpoints`.
+ * - Everything else → flat tokens registered into the unified registry.
  *
- * BreakpointValue is checked before ModeValue — they are mutually exclusive on the same variant.
- *
- * @param cssName - Kebab-case token name
- * @param variants - Variant-to-value map (may include ModeValue or BreakpointValue objects)
- * @param pkg - Component prefix for CSS variable namespace, or undefined for core tokens
- * @param defaultDeclarations - Collects :root declarations
- * @param modeDeclarations - Collects mode-specific declarations for @media (prefers-color-scheme) blocks
- * @param breakpointDeclarations - Collects breakpoint-specific declarations for @media (min-width) blocks
- */
-function processVariants(
-  cssName: string,
-  variants: Record<string, string | number | ModeValue | BreakpointValue>,
-  pkg: string | undefined,
-  defaultDeclarations: string[],
-  modeDeclarations: Map<string, string[]>,
-  breakpointDeclarations: Map<string, string[]>
-): void {
-  for (const [variant, value] of Object.entries(variants)) {
-    if (isStyleValue("breakpoint", value)) {
-      // Breakpoint value — semantic variable gets the default breakpoint (phone) value
-      const defaultValue = value[DEFAULT_BREAKPOINT]
-      const cssVar = getConstant(cssName, variant, { pkg })
-      defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
-
-      for (const [breakpoint, bpValue] of Object.entries(value)) {
-        if (breakpoint !== DEFAULT_BREAKPOINT) {
-          // Non-default breakpoint primitive — stable reference (e.g., --*--laptop: value)
-          const bpCssVar = getConstant(cssName, variant, { breakpoint, pkg })
-          defaultDeclarations.push(`${bpCssVar.key}: ${bpValue};`)
-
-          // Media query entry — reassigns semantic variable to breakpoint primitive at viewport
-          const declarations = breakpointDeclarations.get(breakpoint)
-          if (declarations) {
-            declarations.push(`${cssVar.key}: var(${bpCssVar.key});`)
-          }
-        }
-      }
-    } else if (isStyleValue("mode", value)) {
-      // Mode value — semantic variable gets the default mode (day) value
-      const defaultValue = value[DEFAULT_MODE]
-      const cssVar = getConstant(cssName, variant, { pkg })
-      defaultDeclarations.push(`${cssVar.key}: ${defaultValue};`)
-
-      for (const [mode, modeValue] of Object.entries(value)) {
-        if (mode !== DEFAULT_MODE) {
-          // Non-default mode primitive — stable reference, never reassigned (e.g., --*--night: value)
-          const modeCssVar = getConstant(cssName, variant, { mode, pkg })
-          defaultDeclarations.push(`${modeCssVar.key}: ${modeValue};`)
-
-          // Media query entry — reassigns semantic variable to mode primitive at runtime
-          const declarations = modeDeclarations.get(mode)
-          if (declarations) {
-            declarations.push(`${cssVar.key}: var(${modeCssVar.key});`)
-          }
-        }
-      }
-    } else {
-      // Simple value — single declaration, no mode or breakpoint variants
-      const cssVar = getConstant(cssName, variant, { pkg })
-      defaultDeclarations.push(`${cssVar.key}: ${value};`)
-    }
-  }
-}
-
-/**
- * Creates CSS custom property tokens with a GlobalStyles component.
- * Supports mode variants for theming (day/night/custom modes).
- *
- * Detects component token overrides automatically: top-level keys matching a
- * known component prefix (button, icon, tile, typography) are treated as
- * 3-level structures (prefix -> tokenName -> variant) and generate
- * --np--{prefix}--{token}--{variant} CSS variables.
- *
- * @param tokenMap - Object mapping token names to variant -> value objects
- * @param prefix - Optional component prefix for CSS variables (e.g., "button", "tile")
- * @param options - Optional configuration
- * @param options.colorSchemeEnabled - When true, emits `@media (prefers-color-scheme: dark)` for
- *   automatic dark mode switching. Default: false (night primitives are still generated for
- *   force-pinning, but the automatic switch is omitted).
+ * @param tokenMap - Object mapping token names to variant → value objects.
+ * @param prefix - Optional component prefix for the CSS variable namespace.
+ * @param options.colorSchemeEnabled - When true, emits
+ *   `@media (prefers-color-scheme: dark)` for automatic dark-mode switching.
  *
  * @example
- * // Simple tokens (default mode only)
- * const AppTokens = {
+ * const { GlobalStyles } = createTokens({
  *   fontSize: { base: "20px" },
- * } as const
- *
- * @example
- * // Component token override — overrides --np--icon--size--base
- * const AppTokens = {
- *   icon: { size: { base: "32px" } },
- * } as const
- *
- * @example
- * // Tokens with mode variants (no auto dark mode)
- * const AppTokens = {
- *   brandColor: {
- *     primary: { day: "#dc0000", night: "#ff6666" }
- *   }
- * } as const
- *
- * @example
- * // Opt in to auto dark mode
- * createTokens(AppTokens, "app", { colorSchemeEnabled: true })
- *
- * @example
- * // Breakpoint-aware tokens (phone-first, always active)
- * const AppTokens = {
- *   fontSize: {
- *     base: { phone: "16px", laptop: "20px" },
- *     large: { phone: "22px", laptop: "28px", desktop: "32px" },
- *   }
- * } as const
+ *   brandColor: { primary: { day: "#dc0000", night: "#ff6666" } },
+ *   breakpoints: { laptop: 1100, desktop: 1800 },
+ * })
  */
 export function createTokens<T extends TokenMap | TokenMapWithModes>(
   tokenMap: T,
   prefix?: string,
   options?: { colorSchemeEnabled?: boolean }
-): ComponentTokens<T extends TokenMap ? T : TokenMap> {
-  type VariantValue = string | number | ModeValue | BreakpointValue
-  type VariantMap = Record<string, VariantValue>
-
-  // Separate flat tokens from component token overrides and breakpoint config
-  const flatTokens: Record<string, VariantMap> = {}
-  const componentOverrides: Record<string, Record<string, VariantMap>> = {}
-  let breakpointOverrides: Partial<BreakpointValues> | undefined
-
-  for (const [key, value] of Object.entries(tokenMap)) {
-    if (key === "breakpoints") {
-      // Breakpoint thresholds — forward to setBreakpoints, do not register as tokens
-      breakpointOverrides = value as Partial<BreakpointValues>
-    } else if (componentPrefixes.has(key)) {
-      // Component prefix — expect 3-level structure: prefix -> tokenName -> variant
-      componentOverrides[key] = value as Record<string, VariantMap>
-    } else {
-      flatTokens[key] = value as VariantMap
-    }
-  }
-
-  // Apply breakpoint overrides before any token CSS is emitted so the
-  // @media thresholds used below reflect the new values.
-  if (breakpointOverrides) {
-    setBreakpoints(breakpointOverrides)
-  }
-
-  // Register flat tokens only — component overrides work via CSS variable cascade
-  registerTokens(flatTokens, prefix)
-
-  /**
-   * Scan a variant map for mode and breakpoint dimension keys.
-   * Populates the shared modes/breakpoints sets so we can pre-initialize
-   * the declaration maps before processing.
-   */
-  function collectDimensions(variants: VariantMap, modes: Set<string>, breakpoints: Set<string>): void {
-    for (const value of Object.values(variants)) {
-      if (isStyleValue("breakpoint", value)) {
-        for (const bp of Object.keys(value)) {
-          breakpoints.add(bp)
-        }
-      } else if (isStyleValue("mode", value)) {
-        for (const mode of Object.keys(value)) {
-          modes.add(mode)
-        }
-      }
-    }
-  }
-
-  // Collect all modes and breakpoints from flat tokens and component overrides
-  const modes = new Set<string>([DEFAULT_MODE])
-  const breakpoints = new Set<string>([DEFAULT_BREAKPOINT])
-
-  for (const variants of Object.values(flatTokens)) {
-    collectDimensions(variants, modes, breakpoints)
-  }
-  for (const tokenGroups of Object.values(componentOverrides)) {
-    for (const variants of Object.values(tokenGroups)) {
-      collectDimensions(variants, modes, breakpoints)
-    }
-  }
-
-  // Initialize declaration accumulators
-  const defaultDeclarations: string[] = []
-
-  // Mode declarations — keyed by non-default mode name (e.g., "night")
-  const modeDeclarations: Map<string, string[]> = new Map()
-  for (const mode of modes) {
-    if (mode !== DEFAULT_MODE) {
-      modeDeclarations.set(mode, [])
-    }
-  }
-
-  // Breakpoint declarations — keyed by non-default breakpoint name (e.g., "medium", "large")
-  const breakpointDeclarations: Map<string, string[]> = new Map()
-  for (const bp of breakpoints) {
-    if (bp !== DEFAULT_BREAKPOINT) {
-      breakpointDeclarations.set(bp, [])
-    }
-  }
-
-  // Flat tokens — 2-level: tokenName -> variant
-  for (const [tokenKey, variants] of Object.entries(flatTokens)) {
-    processVariants(camelToKebab(tokenKey), variants, prefix, defaultDeclarations, modeDeclarations, breakpointDeclarations)
-  }
-
-  // Component token overrides — 3-level: prefix -> tokenName -> variant
-  for (const [componentPrefix, tokenGroups] of Object.entries(componentOverrides)) {
-    for (const [tokenName, variants] of Object.entries(tokenGroups)) {
-      processVariants(camelToKebab(tokenName), variants, componentPrefix, defaultDeclarations, modeDeclarations, breakpointDeclarations)
-    }
-  }
-
-  // Build CSS string — :root block with all default + primitive declarations
-  let cssString = `
-    :root {
-      ${defaultDeclarations.join("\n      ")}
-    }
-  `
-
-  // Color scheme media query — opt-in via colorSchemeEnabled option
-  if (options?.colorSchemeEnabled) {
-    const nightDeclarations = modeDeclarations.get("night")
-    if (nightDeclarations && nightDeclarations.length > 0) {
-      cssString += `
-    @media (prefers-color-scheme: dark) {
-      :root {
-        ${nightDeclarations.join("\n        ")}
-      }
-    }
-    `
-    }
-  }
-
-  // Breakpoint media queries — always active (not opt-in), phone-first via min-width
-  // Breakpoint query map: breakpoint name → media query string
-  const breakpointQueries: Record<string, string> = {
-    [BREAKPOINT_TABLET]: getBreakpoint(BREAKPOINT_TABLET),
-    [BREAKPOINT_LAPTOP]: getBreakpoint(BREAKPOINT_LAPTOP),
-    [BREAKPOINT_DESKTOP]: getBreakpoint(BREAKPOINT_DESKTOP),
-  }
-
-  for (const [bp, declarations] of breakpointDeclarations.entries()) {
-    if (declarations.length > 0) {
-      const query = breakpointQueries[bp]
-      if (query) {
-        cssString += `
-    ${query} {
-      :root {
-        ${declarations.join("\n        ")}
-      }
-    }
-    `
-      }
-    }
-  }
-
-  // Inject CSS into shared <style data-nice-tokens> element at module load time
-  injectTokenCSS(prefix ?? "", cssString)
-
-  // No-op component — CSS is already injected above.
-  // Kept for backwards compat: external consumers may still render <GlobalStyles />.
+): ComponentTokens {
+  const css = generateTokenCSS(tokenMap, prefix, options)
+  injectTokenCSS(prefix ?? "", css)
   const GlobalStyles: ComponentType = () => null
-
-  return {
-    GlobalStyles,
-    getReactToken: registryGetToken as GetTokenFn<T extends TokenMap ? T : TokenMap>,
-  }
+  return { GlobalStyles }
 }

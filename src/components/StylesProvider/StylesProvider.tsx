@@ -6,13 +6,11 @@
  */
 
 import { useMemo } from 'react'
-import { Theme } from 'nice-styles'
+import { Theme, parseGoogleFontsUrl, type GoogleFontsConfig, type LinkAttributes } from 'nice-styles'
 import { FontLoader } from '../FontLoader'
-import { parseGoogleFontsUrl } from '../../services/parseGoogleFontsUrl'
 import { ThemeProvider } from './StylesProvider.styled'
 import type { StylesProviderProps } from './StylesProvider.types'
-import type { GoogleFontsConfig, LinkAttributes } from '../../types'
-import 'nice-styles/variables.css'
+import 'nice-styles/tokens.css'
 
 /**
  * Default Google Sans Flex configuration

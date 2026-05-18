@@ -11,15 +11,12 @@ export type { ComponentTokens } from './services/createTokens'
 export { withBreakpoints } from './services/withBreakpoints'
 export type { BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 
-// Token registry - unified token access
-export { getReactToken, getReactTokenKey, getReactTokenValue } from './services/getReactToken'
-export { DEFAULT_MODE, DEFAULT_BREAKPOINT } from './services/styleValues'
-export type { StyleValueKind } from './services/styleValues'
-export type { ModeValue } from './services/ModeValue'
-export type { BreakpointValue } from './services/BreakpointValue'
-
-// Re-export all nice-styles public API
+// Re-export the nice-styles public API. nice-react-styles consumers don't
+// need to import from two packages.
 export {
+  getToken,
+  getTokenKey,
+  getTokenValue,
   getBreakpoint,
   getBreakpointValue,
   getColorToken,
@@ -44,6 +41,11 @@ export {
   camelToKebab,
   Theme,
   componentTokensData,
+  parseGoogleFontsUrl,
+  isStyleValue,
+  DEFAULT_MODE,
+  DEFAULT_BREAKPOINT,
+  STYLE_VALUE_KEYS,
   BREAKPOINT_PHONE,
   BREAKPOINT_TABLET,
   BREAKPOINT_LAPTOP,
@@ -52,18 +54,26 @@ export {
 } from 'nice-styles'
 
 export type {
+  // Style-value shapes
+  ModeValue,
+  BreakpointValue,
+  StyleValueKind,
   // Token result types
   TokenResult,
   ComponentPrefix,
   BreakpointName,
   BreakpointValues,
-  CoreTokenConfig,
   CssConstantResult,
   CssConstantOptions,
   TokenDefinition,
   TokenMap,
   ComponentTokenNode,
   TokenFromMapOptions,
+  // Google fonts
+  FontAxis,
+  GoogleFontMetadata,
+  LinkAttributes,
+  GoogleFontsConfig,
   // Token union types
   AnimationDurationType,
   AnimationEasingType,
@@ -92,4 +102,4 @@ export type {
 
 // Type exports
 export type { StylesProviderProps } from './components/StylesProvider/StylesProvider.types'
-export type { Breakpoints, GoogleFontsConfig, LinkAttributes, GoogleFontMetadata, FontAxis } from './types'
+export type { Breakpoints } from './types'

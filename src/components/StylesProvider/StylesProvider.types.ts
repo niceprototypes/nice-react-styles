@@ -3,7 +3,7 @@
  */
 
 import type { ComponentType, ReactNode } from 'react'
-import type { GoogleFontsConfig } from '../../types'
+import type { GoogleFontsConfig } from 'nice-styles'
 
 /**
  * Props for the StylesProvider component
