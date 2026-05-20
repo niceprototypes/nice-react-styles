@@ -1,8 +1,8 @@
 {
   "extends": "nice-configuration/typescript/react",
   "compilerOptions": {
-    "outDir": "dist/esm",
-    "declarationDir": "dist/esm/types"
+    "outDir": "dist",
+    "declarationDir": "dist/types"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
