@@ -4,6 +4,8 @@
  */
 
 export { StylesProvider } from './components/StylesProvider'
+export { Mode } from './components/Mode'
+export type { ModeProps } from './components/Mode'
 
 // Service exports
 export { createTokens } from './services/createTokens'
