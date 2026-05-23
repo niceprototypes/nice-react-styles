@@ -10,6 +10,12 @@ export interface ModeProps {
    * or third-party widgets that consume `var(--np--…)`.
    */
   name: ModeType
+  /**
+   * Optional class to add to the wrapper element. Useful for scoping
+   * consumer-side CSS overrides to a specific Mode instance (e.g.
+   * `className="nice-storybook"` and target `.nice-storybook .sbdocs …`).
+   */
+  className?: string
   /** Content to pin. */
   children: React.ReactNode
 }
@@ -38,8 +44,8 @@ export interface ModeProps {
  *   </Mode>
  * </Mode>
  */
-export const Mode: React.FC<ModeProps> = ({ name, children }) => (
-  <div data-theme={name} style={{ display: "contents" }}>
+export const Mode: React.FC<ModeProps> = ({ name, className, children }) => (
+  <div data-theme={name} className={className} style={{ display: "contents" }}>
     {children}
   </div>
 )
