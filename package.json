@@ -40,7 +40,6 @@
     "react-dom": "19.2.0",
     "rollup": "^4.9.1",
     "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
     "styled-components": "6.1.19",
     "tslib": "^2.6.2",
     "typescript": "^6.0.3"
