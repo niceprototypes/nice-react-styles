@@ -1,1 +1,0 @@
-[2026-05-24 06:30] major: Re-export rename: `ForegroundColorType` → `ColorType` (mirrors nice-styles@major). Consumers importing `ForegroundColorType` from `nice-react-styles` must update to `ColorType`.
