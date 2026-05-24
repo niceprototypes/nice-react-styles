@@ -1,6 +1,6 @@
 {
   "name": "nice-react-styles",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "type": "module",
   "description": "React provider component for nice-styles CSS variables with styled-components theme support",
   "main": "dist/index.js",
@@ -22,7 +22,8 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
   },
   "peerDependencies": {
     "react": ">=19.2.0 <20.0.0",
