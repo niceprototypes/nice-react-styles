@@ -2,7 +2,7 @@
  * Type definitions for StylesProvider
  */
 
-import type { ComponentType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { GoogleFontsConfig } from 'nice-styles'
 
 /**
@@ -43,20 +43,4 @@ export interface StylesProviderProps {
    * ```
    */
   googleFonts?: string | GoogleFontsConfig
-
-  /**
-   * Array of GlobalStyles components from nice-react-* component libraries
-   * These inject component-level CSS custom properties on :root
-   *
-   * @example
-   * ```tsx
-   * import { ButtonStyles } from 'nice-react-button'
-   * import { IconStyles } from 'nice-react-icon'
-   *
-   * <StylesProvider componentStyles={[ButtonStyles, IconStyles]}>
-   *   <App />
-   * </StylesProvider>
-   * ```
-   */
-  componentStyles?: ComponentType[]
 }

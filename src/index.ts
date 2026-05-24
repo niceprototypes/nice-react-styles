@@ -9,7 +9,6 @@ export type { ModeProps } from './components/Mode'
 
 // Service exports
 export { createTokens } from './services/createTokens'
-export type { ComponentTokens } from './services/createTokens'
 export { withBreakpoints } from './services/withBreakpoints'
 export type { BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 

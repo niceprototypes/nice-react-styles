@@ -1,21 +1,9 @@
-import type { ComponentType } from "react"
 import {
   generateTokenCSS,
   injectTokenCSS,
   type TokenMap,
   type ModeValue,
 } from "nice-styles"
-
-/**
- * Return type of createTokens.
- */
-export interface ComponentTokens {
-  /**
-   * No-op component kept for backwards compat. CSS is already injected by the
-   * time `createTokens` returns — rendering `<GlobalStyles />` is harmless.
-   */
-  GlobalStyles: ComponentType
-}
 
 type TokenMapWithModes = Record<string, Record<string, string | number | ModeValue>>
 
@@ -36,7 +24,7 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  *   `@media (prefers-color-scheme: dark)` for automatic dark-mode switching.
  *
  * @example
- * const { GlobalStyles } = createTokens({
+ * createTokens({
  *   fontSize: { base: "20px" },
  *   brandColor: { primary: { day: "#dc0000", night: "#ff6666" } },
  *   breakpoints: { laptop: 1100, desktop: 1800 },
@@ -46,9 +34,7 @@ export function createTokens<T extends TokenMap | TokenMapWithModes>(
   tokenMap: T,
   prefix?: string,
   options?: { colorSchemeEnabled?: boolean }
-): ComponentTokens {
+): void {
   const css = generateTokenCSS(tokenMap, prefix, options)
   injectTokenCSS(prefix ?? "", css)
-  const GlobalStyles: ComponentType = () => null
-  return { GlobalStyles }
 }

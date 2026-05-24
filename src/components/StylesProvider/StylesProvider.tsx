@@ -142,17 +142,12 @@ function useGoogleFontsConfig(
  * </StylesProvider>
  * ```
  */
-export function StylesProvider({ children, loadFonts, googleFonts, componentStyles }: StylesProviderProps) {
+export function StylesProvider({ children, loadFonts, googleFonts }: StylesProviderProps) {
   const fontsConfig = useGoogleFontsConfig(loadFonts, googleFonts)
 
   return (
     <ThemeProvider theme={Theme}>
-      {/* Load Google Fonts if configured */}
       {fontsConfig && <FontLoader links={fontsConfig.links} />}
-      {/* Render component GlobalStyles */}
-      {componentStyles?.map((ComponentStyle, index) => (
-        <ComponentStyle key={index} />
-      ))}
       {children}
     </ThemeProvider>
   )
