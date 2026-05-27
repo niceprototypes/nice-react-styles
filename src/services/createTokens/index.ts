@@ -2,10 +2,10 @@ import {
   generateTokenCSS,
   injectTokenCSS,
   type TokenMap,
-  type ModeValue,
+  type ThemeValue,
 } from "nice-styles"
 
-type TokenMapWithModes = Record<string, Record<string, string | number | ModeValue>>
+type TokenMapWithThemes = Record<string, Record<string, string | number | ThemeValue>>
 
 /**
  * React wrapper around `generateTokenCSS` from nice-styles. Builds the token
@@ -21,7 +21,7 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  * @param tokenMap - Object mapping token names to variant → value objects.
  * @param prefix - Optional component prefix for the CSS variable namespace.
  * @param options.colorSchemeEnabled - When true, emits
- *   `@media (prefers-color-scheme: dark)` for automatic dark-mode switching.
+ *   `@media (prefers-color-scheme: dark)` for automatic dark-theme switching.
  *
  * @example
  * createTokens({
@@ -30,7 +30,7 @@ type TokenMapWithModes = Record<string, Record<string, string | number | ModeVal
  *   breakpoints: { laptop: 1100, desktop: 1800 },
  * })
  */
-export function createTokens<T extends TokenMap | TokenMapWithModes>(
+export function createTokens<T extends TokenMap | TokenMapWithThemes>(
   tokenMap: T,
   prefix?: string,
   options?: { colorSchemeEnabled?: boolean }

@@ -4,8 +4,8 @@
  */
 
 export { StylesProvider } from './components/StylesProvider'
-export { Mode } from './components/Mode'
-export type { ModeProps } from './components/Mode'
+export { Theme } from './components/Theme'
+export type { ThemeProps } from './components/Theme'
 
 // Service exports
 export { createTokens } from './services/createTokens'
@@ -20,14 +20,14 @@ export {
   getTokenValue,
   getBreakpoint,
   getBreakpointValue,
-  getModeToken,
-  getModeTokenKey,
-  getModeTokenValue,
+  getThemeToken,
+  getThemeTokenKey,
+  getThemeTokenValue,
   getBreakpointToken,
   getBreakpointTokenKey,
   getBreakpointTokenValue,
   setCoreTokens,
-  setModeTokens,
+  setThemeTokens,
   setBreakpointTokens,
   setBreakpoints,
   getConstant,
@@ -35,16 +35,15 @@ export {
   getComponentToken,
   getComponentTokenKey,
   getComponentTokenValue,
-  getInvertedMode,
   getTextHeight,
   getTokenFromMap,
   getTokenByPath,
   camelToKebab,
-  Theme,
+  Colors,
   componentTokensData,
   parseGoogleFontsUrl,
   isStyleValue,
-  DEFAULT_MODE,
+  DEFAULT_THEME,
   DEFAULT_BREAKPOINT,
   STYLE_VALUE_KEYS,
   BREAKPOINT_PHONE,
@@ -56,7 +55,7 @@ export {
 
 export type {
   // Style-value shapes
-  ModeValue,
+  ThemeValue,
   BreakpointValue,
   StyleValueKind,
   // Token result types
@@ -96,8 +95,8 @@ export type {
   SpacingDefinitionType,
   SpacingResponsiveType,
   SpacingType,
-  // Mode types
-  ModeType,
+  // Theme types
+  ThemeType,
 } from 'nice-styles'
 
 // Type exports

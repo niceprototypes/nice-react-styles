@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from 'react'
-import { Theme, parseGoogleFontsUrl, type GoogleFontsConfig, type LinkAttributes } from 'nice-styles'
+import { Colors, parseGoogleFontsUrl, type GoogleFontsConfig, type LinkAttributes } from 'nice-styles'
 import { FontLoader } from '../FontLoader'
 import { ThemeProvider } from './StylesProvider.styled'
 import type { StylesProviderProps } from './StylesProvider.types'
@@ -146,7 +146,7 @@ export function StylesProvider({ children, loadFonts, googleFonts }: StylesProvi
   const fontsConfig = useGoogleFontsConfig(loadFonts, googleFonts)
 
   return (
-    <ThemeProvider theme={Theme}>
+    <ThemeProvider theme={Colors}>
       {fontsConfig && <FontLoader links={fontsConfig.links} />}
       {children}
     </ThemeProvider>
