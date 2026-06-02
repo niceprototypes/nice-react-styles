@@ -6,7 +6,14 @@
  */
 
 import { useMemo } from 'react'
-import { Colors, parseGoogleFontsUrl, type GoogleFontsConfig, type LinkAttributes } from 'nice-styles'
+import {
+  Colors,
+  parseGoogleFontsUrl,
+  parseAdobeFontsUrl,
+  type GoogleFontsConfig,
+  type AdobeFontsConfig,
+  type LinkAttributes,
+} from 'nice-styles'
 import { FontLoader } from '../FontLoader'
 import { ThemeProvider } from './StylesProvider.styled'
 import type { StylesProviderProps } from './StylesProvider.types'
@@ -113,6 +120,54 @@ function useGoogleFontsConfig(
 }
 
 /**
+ * Processes adobeFonts prop into a normalized AdobeFontsConfig.
+ *
+ * Mirrors useGoogleFontsConfig. Adobe Fonts ships every @font-face in the kit
+ * stylesheet, so this only resolves the kit id and emits the preconnect +
+ * stylesheet links — no axis parsing.
+ */
+function useAdobeFontsConfig(
+  adobeFonts?: string | AdobeFontsConfig
+): AdobeFontsConfig | null {
+  return useMemo(() => {
+    if (!adobeFonts) return null
+
+    // Already a config object — pass through.
+    if (typeof adobeFonts === 'object') {
+      return adobeFonts
+    }
+
+    // Kit id or URL string — parse and build the kit links.
+    const metadata = parseAdobeFontsUrl(adobeFonts)
+    if (!metadata) {
+      console.error('Failed to parse Adobe Fonts kit reference:', adobeFonts)
+      return null
+    }
+
+    const links: LinkAttributes[] = [
+      {
+        rel: 'preconnect',
+        href: 'https://use.typekit.net',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://p.typekit.net',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: metadata.cssUrl,
+      },
+    ]
+
+    return {
+      links,
+      fonts: [metadata],
+    }
+  }, [adobeFonts])
+}
+
+/**
  * StylesProvider Component
  *
  * @example Basic usage (no fonts):
@@ -141,13 +196,22 @@ function useGoogleFontsConfig(
  *   <App />
  * </StylesProvider>
  * ```
+ *
+ * @example With an Adobe Fonts (Typekit) kit:
+ * ```tsx
+ * <StylesProvider adobeFonts="abc1def">
+ *   <App />
+ * </StylesProvider>
+ * ```
  */
-export function StylesProvider({ children, loadFonts, googleFonts }: StylesProviderProps) {
+export function StylesProvider({ children, loadFonts, googleFonts, adobeFonts }: StylesProviderProps) {
   const fontsConfig = useGoogleFontsConfig(loadFonts, googleFonts)
+  const adobeConfig = useAdobeFontsConfig(adobeFonts)
 
   return (
     <ThemeProvider theme={Colors}>
       {fontsConfig && <FontLoader links={fontsConfig.links} />}
+      {adobeConfig && <FontLoader links={adobeConfig.links} />}
       {children}
     </ThemeProvider>
   )

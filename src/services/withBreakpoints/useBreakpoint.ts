@@ -19,7 +19,8 @@ const getCurrent = (): BreakpointName => {
   const width = window.innerWidth
   if (width >= BREAKPOINTS[BREAKPOINT_DESKTOP]) return BREAKPOINT_DESKTOP
   if (width >= BREAKPOINTS[BREAKPOINT_LAPTOP]) return BREAKPOINT_LAPTOP
-  if (width > BREAKPOINTS[BREAKPOINT_PHONE]) return BREAKPOINT_TABLET
+  if (width >= BREAKPOINTS[BREAKPOINT_TABLET]) return BREAKPOINT_TABLET
+  // Below the tablet floor is the phone base.
   return BREAKPOINT_PHONE
 }
 

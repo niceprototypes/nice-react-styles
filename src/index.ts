@@ -9,8 +9,8 @@ export type { ThemeProps } from './components/Theme'
 
 // Service exports
 export { createTokens } from './services/createTokens'
-export { withBreakpoints } from './services/withBreakpoints'
-export type { BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
+export { withBreakpoints, useBreakpoint } from './services/withBreakpoints'
+export type { BreakpointKey, BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 
 // Re-export the nice-styles public API. nice-react-styles consumers don't
 // need to import from two packages.
@@ -42,6 +42,7 @@ export {
   Colors,
   componentTokensData,
   parseGoogleFontsUrl,
+  parseAdobeFontsUrl,
   isStyleValue,
   DEFAULT_THEME,
   DEFAULT_BREAKPOINT,
@@ -73,6 +74,9 @@ export type {
   GoogleFontMetadata,
   LinkAttributes,
   GoogleFontsConfig,
+  // Adobe fonts
+  AdobeFontMetadata,
+  AdobeFontsConfig,
   // Token union types
   AnimationDurationType,
   AnimationEasingType,

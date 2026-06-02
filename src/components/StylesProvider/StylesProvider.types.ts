@@ -3,7 +3,7 @@
  */
 
 import type { ReactNode } from 'react'
-import type { GoogleFontsConfig } from 'nice-styles'
+import type { GoogleFontsConfig, AdobeFontsConfig } from 'nice-styles'
 
 /**
  * Props for the StylesProvider component
@@ -43,4 +43,26 @@ export interface StylesProviderProps {
    * ```
    */
   googleFonts?: string | GoogleFontsConfig
+
+  /**
+   * Optional Adobe Fonts (Typekit) kit to load.
+   * Provide a bare kit id, a full kit stylesheet URL, or a full
+   * AdobeFontsConfig object. Loads independently of (and alongside)
+   * loadFonts / googleFonts — Adobe and Google fonts can be used together.
+   *
+   * @example Using a kit id:
+   * ```tsx
+   * <StylesProvider adobeFonts="abc1def">
+   *   <App />
+   * </StylesProvider>
+   * ```
+   *
+   * @example Using the kit stylesheet URL:
+   * ```tsx
+   * <StylesProvider adobeFonts="https://use.typekit.net/abc1def.css">
+   *   <App />
+   * </StylesProvider>
+   * ```
+   */
+  adobeFonts?: string | AdobeFontsConfig
 }

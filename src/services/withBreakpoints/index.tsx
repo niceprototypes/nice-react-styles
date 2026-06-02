@@ -8,6 +8,9 @@ import {
 } from "nice-styles"
 import { useBreakpoint } from "./useBreakpoint"
 
+// Public re-export — the hook is documented as importable from the package root.
+export { useBreakpoint } from "./useBreakpoint"
+
 /**
  * A breakpoint key in the `breakpoints` prop.
  *
