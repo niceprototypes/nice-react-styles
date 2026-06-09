@@ -8,7 +8,7 @@ export { Theme } from './components/Theme'
 export type { ThemeProps } from './components/Theme'
 
 // Service exports
-export { createTokens } from './services/createTokens'
+export { setTokens } from './services/setTokens'
 export { withBreakpoints, useBreakpoint } from './services/withBreakpoints'
 export type { BreakpointKey, BreakpointOverride, WithBreakpointsProps } from './services/withBreakpoints'
 

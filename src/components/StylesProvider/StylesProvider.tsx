@@ -20,28 +20,13 @@ import type { StylesProviderProps } from './StylesProvider.types'
 import 'nice-styles/tokens.css'
 
 /**
- * Default Google Sans Flex configuration
- * This is the font used by nice-styles for FONT_FAMILY_BASE and FONT_FAMILY_HEADING
- */
-const DEFAULT_BASE_FONT_URL =
-  'https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,1..1000,37&display=swap'
-
-/**
- * Default Roboto Mono configuration
- * This is the font used by nice-styles for FONT_FAMILY_CODE
- */
-const DEFAULT_CODE_FONT_URL =
-  'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap'
-
-/**
  * Processes googleFonts prop into a normalized GoogleFontsConfig
  */
 function useGoogleFontsConfig(
-  loadFonts?: boolean,
   googleFonts?: string | GoogleFontsConfig
 ): GoogleFontsConfig | null {
   return useMemo(() => {
-    // Priority 1: If googleFonts is explicitly provided, use it
+    // If googleFonts is provided, build its link set
     if (googleFonts) {
       // If it's already a config object, return it
       if (typeof googleFonts === 'object') {
@@ -78,45 +63,9 @@ function useGoogleFontsConfig(
       }
     }
 
-    // Priority 2: If loadFonts is true, use default Google Sans Flex and Roboto Mono
-    if (loadFonts) {
-      const baseFontMetadata = parseGoogleFontsUrl(DEFAULT_BASE_FONT_URL)
-      const codeFontMetadata = parseGoogleFontsUrl(DEFAULT_CODE_FONT_URL)
-
-      if (!baseFontMetadata || !codeFontMetadata) {
-        console.error('Failed to parse default Google Fonts configuration')
-        return null
-      }
-
-      const links: LinkAttributes[] = [
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.googleapis.com',
-        },
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.gstatic.com',
-          crossOrigin: 'anonymous',
-        },
-        {
-          rel: 'stylesheet',
-          href: DEFAULT_BASE_FONT_URL,
-        },
-        {
-          rel: 'stylesheet',
-          href: DEFAULT_CODE_FONT_URL,
-        },
-      ]
-
-      return {
-        links,
-        fonts: [baseFontMetadata, codeFontMetadata],
-      }
-    }
-
-    // Priority 3: No fonts
+    // No googleFonts → no fonts loaded
     return null
-  }, [loadFonts, googleFonts])
+  }, [googleFonts])
 }
 
 /**
@@ -183,9 +132,9 @@ function useAdobeFontsConfig(
  * }
  * ```
  *
- * @example With default fonts (Google Sans Flex + Roboto Mono):
+ * @example With the Nice default fonts (Google Sans Flex + Roboto Mono):
  * ```tsx
- * <StylesProvider loadFonts>
+ * <StylesProvider googleFonts="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,1..1000,37&family=Roboto+Mono:wght@100..700&display=swap">
  *   <App />
  * </StylesProvider>
  * ```
@@ -204,8 +153,8 @@ function useAdobeFontsConfig(
  * </StylesProvider>
  * ```
  */
-export function StylesProvider({ children, loadFonts, googleFonts, adobeFonts }: StylesProviderProps) {
-  const fontsConfig = useGoogleFontsConfig(loadFonts, googleFonts)
+export function StylesProvider({ children, googleFonts, adobeFonts }: StylesProviderProps) {
+  const fontsConfig = useGoogleFontsConfig(googleFonts)
   const adobeConfig = useAdobeFontsConfig(adobeFonts)
 
   return (

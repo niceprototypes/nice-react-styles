@@ -15,25 +15,8 @@ export interface StylesProviderProps {
   children: ReactNode
 
   /**
-   * Enable loading of default nice-styles fonts
-   * When true, loads Google Sans Flex (base/heading) and Roboto Mono (code)
-   * When false (default), no fonts are loaded
-   *
-   * @default false
-   *
-   * @example Enable default fonts:
-   * ```tsx
-   * <StylesProvider loadFonts>
-   *   <App />
-   * </StylesProvider>
-   * ```
-   */
-  loadFonts?: boolean
-
-  /**
-   * Optional Google Fonts configuration (overrides loadFonts)
-   * Provide either a URL string or a full configuration object
-   * If provided, this takes precedence over the loadFonts prop
+   * Optional Google Fonts to load. Provide either a URL string (any standard
+   * Google Fonts URL) or a full configuration object.
    *
    * @example Using URL string:
    * ```tsx
@@ -48,7 +31,7 @@ export interface StylesProviderProps {
    * Optional Adobe Fonts (Typekit) kit to load.
    * Provide a bare kit id, a full kit stylesheet URL, or a full
    * AdobeFontsConfig object. Loads independently of (and alongside)
-   * loadFonts / googleFonts — Adobe and Google fonts can be used together.
+   * `googleFonts` — Adobe and Google fonts can be used together.
    *
    * @example Using a kit id:
    * ```tsx

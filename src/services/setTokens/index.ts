@@ -24,13 +24,13 @@ type TokenMapWithThemes = Record<string, Record<string, string | number | ThemeV
  *   `@media (prefers-color-scheme: dark)` for automatic dark-theme switching.
  *
  * @example
- * createTokens({
+ * setTokens({
  *   fontSize: { base: "20px" },
  *   brandColor: { primary: { day: "#dc0000", night: "#ff6666" } },
  *   breakpoints: { laptop: 1100, desktop: 1800 },
  * })
  */
-export function createTokens<T extends TokenMap | TokenMapWithThemes>(
+export function setTokens<T extends TokenMap | TokenMapWithThemes>(
   tokenMap: T,
   prefix?: string,
   options?: { colorSchemeEnabled?: boolean }
