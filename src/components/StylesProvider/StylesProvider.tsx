@@ -8,11 +8,10 @@
 import { useMemo } from 'react'
 import {
   Colors,
-  parseGoogleFontsUrl,
-  parseAdobeFontsUrl,
+  buildGoogleFontsConfig,
+  buildAdobeFontsConfig,
   type GoogleFontsConfig,
   type AdobeFontsConfig,
-  type LinkAttributes,
 } from 'nice-styles'
 import { FontLoader } from '../FontLoader'
 import { ThemeProvider } from './StylesProvider.styled'
@@ -20,100 +19,33 @@ import type { StylesProviderProps } from './StylesProvider.types'
 import 'nice-styles/tokens.css'
 
 /**
- * Processes googleFonts prop into a normalized GoogleFontsConfig
+ * Memoizes the googleFonts prop into a normalized GoogleFontsConfig.
+ *
+ * Link-building lives in nice-styles (`buildGoogleFontsConfig`) so the React
+ * provider and the JS-only `injectFonts` path share one implementation.
  */
 function useGoogleFontsConfig(
   googleFonts?: string | GoogleFontsConfig
 ): GoogleFontsConfig | null {
-  return useMemo(() => {
-    // If googleFonts is provided, build its link set
-    if (googleFonts) {
-      // If it's already a config object, return it
-      if (typeof googleFonts === 'object') {
-        return googleFonts
-      }
-
-      // If it's a URL string, parse it and generate config
-      const metadata = parseGoogleFontsUrl(googleFonts)
-      if (!metadata) {
-        console.error('Failed to parse Google Fonts URL:', googleFonts)
-        return null
-      }
-
-      // Generate link elements for optimal loading
-      const links: LinkAttributes[] = [
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.googleapis.com',
-        },
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.gstatic.com',
-          crossOrigin: 'anonymous',
-        },
-        {
-          rel: 'stylesheet',
-          href: googleFonts,
-        },
-      ]
-
-      return {
-        links,
-        fonts: [metadata],
-      }
-    }
-
-    // No googleFonts → no fonts loaded
-    return null
-  }, [googleFonts])
+  return useMemo(
+    () => (googleFonts ? buildGoogleFontsConfig(googleFonts) : null),
+    [googleFonts]
+  )
 }
 
 /**
- * Processes adobeFonts prop into a normalized AdobeFontsConfig.
+ * Memoizes the adobeFonts prop into a normalized AdobeFontsConfig.
  *
- * Mirrors useGoogleFontsConfig. Adobe Fonts ships every @font-face in the kit
- * stylesheet, so this only resolves the kit id and emits the preconnect +
- * stylesheet links — no axis parsing.
+ * Link-building lives in nice-styles (`buildAdobeFontsConfig`), shared with the
+ * JS-only `injectFonts` path.
  */
 function useAdobeFontsConfig(
   adobeFonts?: string | AdobeFontsConfig
 ): AdobeFontsConfig | null {
-  return useMemo(() => {
-    if (!adobeFonts) return null
-
-    // Already a config object — pass through.
-    if (typeof adobeFonts === 'object') {
-      return adobeFonts
-    }
-
-    // Kit id or URL string — parse and build the kit links.
-    const metadata = parseAdobeFontsUrl(adobeFonts)
-    if (!metadata) {
-      console.error('Failed to parse Adobe Fonts kit reference:', adobeFonts)
-      return null
-    }
-
-    const links: LinkAttributes[] = [
-      {
-        rel: 'preconnect',
-        href: 'https://use.typekit.net',
-      },
-      {
-        rel: 'preconnect',
-        href: 'https://p.typekit.net',
-        crossOrigin: 'anonymous',
-      },
-      {
-        rel: 'stylesheet',
-        href: metadata.cssUrl,
-      },
-    ]
-
-    return {
-      links,
-      fonts: [metadata],
-    }
-  }, [adobeFonts])
+  return useMemo(
+    () => (adobeFonts ? buildAdobeFontsConfig(adobeFonts) : null),
+    [adobeFonts]
+  )
 }
 
 /**

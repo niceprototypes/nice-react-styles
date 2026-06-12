@@ -1,43 +1,29 @@
 import * as React from "react"
 import {
-  BREAKPOINT_PHONE,
-  BREAKPOINT_TABLET,
-  BREAKPOINT_LAPTOP,
-  BREAKPOINT_DESKTOP,
+  parseBreakpointKey,
+  breakpointKeyMatches,
+  compareBreakpointSpecificity,
   type BreakpointName,
+  type BreakpointKey,
+  type ParsedBreakpointKey,
 } from "nice-styles"
 import { useBreakpoint } from "./useBreakpoint"
 
 // Public re-export — the hook is documented as importable from the package root.
 export { useBreakpoint } from "./useBreakpoint"
 
-/**
- * A breakpoint key in the `breakpoints` prop.
- *
- * - bare (`"tablet"`):    matches when the current breakpoint is exactly this name
- * - `"+"` (`"tablet+"`):  matches this name **and every larger** breakpoint
- * - `"-"` (`"tablet-"`):  matches this name **and every smaller** breakpoint
- *
- * Order, smallest → largest: `phone` < `tablet` < `laptop` < `desktop`.
- *
- * Edge cases:
- * - `"phone-"` and `"phone"` are equivalent (phone is the smallest)
- * - `"desktop+"` and `"desktop"` are equivalent (desktop is the largest)
- * - `"phone+"` matches every breakpoint
- * - `"desktop-"` matches every breakpoint
- */
-export type BreakpointKey =
-  | BreakpointName
-  | `${BreakpointName}+`
-  | `${BreakpointName}-`
+// Re-export the shared breakpoint-key type — parsing, matching, and specificity
+// all live in nice-styles so this HOC and `setTokens` agree on one grammar.
+export type { BreakpointKey } from "nice-styles"
 
 /**
  * Map of breakpoint keys to partial overrides for a component's props.
  *
  * Multiple keys may match a single viewport (e.g. `"tablet"`, `"tablet+"`,
- * and `"tablet-"` all match at tablet width). Specificity rule:
- * **range keys (`+`/`-`) apply first; the bare exact key applies last
- * and wins on collision.** Within each tier, insertion order is preserved.
+ * and `"tablet-"` all match at tablet width). Specificity rule (most specific
+ * wins): **smaller range wins; at equal range size, direction breaks the tie —
+ * exact, then `-` (down), then `+` (up).** So `tablet` beats `tablet-`, and at
+ * equal magnitude `laptop-` beats `tablet+`. Insertion order is irrelevant.
  */
 export type BreakpointOverride<P> = {
   [K in BreakpointKey]?: Partial<P>
@@ -49,43 +35,6 @@ export type BreakpointOverride<P> = {
  */
 export type WithBreakpointsProps<P> = P & {
   breakpoints?: BreakpointOverride<P>
-}
-
-/**
- * Index of each breakpoint in the ascending order (phone=0…desktop=3).
- * Cached so the matcher does not re-scan on every entry.
- */
-const ORDER_INDEX: Record<BreakpointName, number> = {
-  [BREAKPOINT_PHONE]: 0,
-  [BREAKPOINT_TABLET]: 1,
-  [BREAKPOINT_LAPTOP]: 2,
-  [BREAKPOINT_DESKTOP]: 3,
-}
-
-type ParsedKey = { name: string; modifier: "exact" | "up" | "down" }
-
-/**
- * Split the optional `+`/`-` suffix from a breakpoint key.
- */
-function parseKey(key: string): ParsedKey {
-  if (key.endsWith("+")) return { name: key.slice(0, -1), modifier: "up" }
-  if (key.endsWith("-")) return { name: key.slice(0, -1), modifier: "down" }
-  return { name: key, modifier: "exact" }
-}
-
-/**
- * Determine whether a parsed key activates at the current viewport.
- */
-function matches(parsed: ParsedKey, current: BreakpointName): boolean {
-  const target = ORDER_INDEX[parsed.name as BreakpointName]
-  // Guard against unknown breakpoint names — the type system prevents this
-  // at the call site, but a stray runtime key would otherwise read undefined.
-  if (target === undefined) return false
-
-  const currentIdx = ORDER_INDEX[current]
-  if (parsed.modifier === "exact") return currentIdx === target
-  if (parsed.modifier === "up") return currentIdx >= target
-  return currentIdx <= target
 }
 
 /**
@@ -123,38 +72,30 @@ function mergeOneLevel<T extends object>(base: T, override: Partial<T>): T {
 }
 
 /**
- * Apply a `BreakpointOverride` map to `working` props using Option-A
- * specificity ordering: every matching range key (`+`/`-`) merges first
- * (in insertion order), then matching exact keys merge last so the most
- * specific match wins on collision.
+ * Apply a `BreakpointOverride` map to `working` props using specificity-first
+ * ordering: collect every key that matches the current viewport, sort them
+ * least → most specific via the shared `compareBreakpointSpecificity`, then
+ * fold-merge in that order so the most specific match lands last and wins.
  */
 function applyOverride<P extends object>(
   working: P,
   override: BreakpointOverride<P>,
   current: BreakpointName
 ): P {
-  const exact: Array<Partial<P>> = []
-  let next = working
-
-  // Pass 1 — range modifiers, in insertion order.
+  const matching: Array<{ parsed: ParsedBreakpointKey; props: Partial<P> }> = []
   for (const [key, props] of Object.entries(override)) {
     if (!props) continue
-    const parsed = parseKey(key)
-    if (parsed.modifier === "exact") {
-      // Defer exact keys to pass 2 so they win on collisions with ranges.
-      if (matches(parsed, current)) exact.push(props as Partial<P>)
-      continue
-    }
-    if (matches(parsed, current)) {
-      next = mergeOneLevel(next, props as Partial<P>)
+    const parsed = parseBreakpointKey(key)
+    if (breakpointKeyMatches(parsed, current)) {
+      matching.push({ parsed, props: props as Partial<P> })
     }
   }
+  matching.sort((a, b) => compareBreakpointSpecificity(a.parsed, b.parsed))
 
-  // Pass 2 — exact keys, in their original insertion order.
-  for (const props of exact) {
+  let next = working
+  for (const { props } of matching) {
     next = mergeOneLevel(next, props)
   }
-
   return next
 }
 
@@ -162,10 +103,10 @@ function applyOverride<P extends object>(
  * Wraps a component with a generic `breakpoints` prop that accepts an object
  * keyed by breakpoint name (with optional `+`/`-` range modifiers).
  *
- * **Specificity rule:** at any given viewport, all matching range keys
- * (`+`/`-`) merge first in insertion order; the bare exact key merges last
- * and wins on conflict. This mirrors CSS specificity intuition — the most
- * specific match supersedes broader ones.
+ * **Specificity rule:** at any given viewport, every matching key is sorted by
+ * specificity and merged least → most specific, so the most specific wins on
+ * conflict. Smaller range beats larger; at equal range size, direction breaks
+ * the tie (exact, then `-`/down, then `+`/up). Insertion order is irrelevant.
  *
  * Optional `defaults` are applied first under the same rule; caller
  * `breakpoints` then apply on top so callers always win over defaults.
