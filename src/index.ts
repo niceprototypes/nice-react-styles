@@ -35,6 +35,7 @@ export {
   getComponentToken,
   getComponentTokenKey,
   getComponentTokenValue,
+  getHSLA,
   getTextHeight,
   getTokenFromMap,
   getTokenByPath,
@@ -69,6 +70,7 @@ export type {
   TokenMap,
   ComponentTokenNode,
   TokenFromMapOptions,
+  GetHSLAOptions,
   // Google fonts
   FontAxis,
   GoogleFontMetadata,
