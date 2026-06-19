@@ -3,7 +3,7 @@
  */
 
 import type { ReactNode } from 'react'
-import type { GoogleFontsConfig, AdobeFontsConfig } from 'nice-styles'
+import type { GoogleFontsConfig, AdobeFontsConfig, LinkAttributes } from 'nice-styles'
 
 /**
  * Props for the StylesProvider component
@@ -48,4 +48,19 @@ export interface StylesProviderProps {
    * ```
    */
   adobeFonts?: string | AdobeFontsConfig
+
+  /**
+   * Optional raw `<link>` descriptors for any other font source — self-hosted
+   * `@font-face` stylesheets, a non-Google/Adobe CDN, etc. Injected verbatim
+   * alongside `googleFonts` / `adobeFonts`. Mirrors the `links` field of the
+   * JS-only `injectFonts`.
+   *
+   * @example Self-hosted font stylesheet:
+   * ```tsx
+   * <StylesProvider links={[{ rel: "stylesheet", href: "/fonts/avenir.css" }]}>
+   *   <App />
+   * </StylesProvider>
+   * ```
+   */
+  links?: LinkAttributes[]
 }

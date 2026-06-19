@@ -85,7 +85,7 @@ function useAdobeFontsConfig(
  * </StylesProvider>
  * ```
  */
-export function StylesProvider({ children, googleFonts, adobeFonts }: StylesProviderProps) {
+export function StylesProvider({ children, googleFonts, adobeFonts, links }: StylesProviderProps) {
   const fontsConfig = useGoogleFontsConfig(googleFonts)
   const adobeConfig = useAdobeFontsConfig(adobeFonts)
 
@@ -93,6 +93,7 @@ export function StylesProvider({ children, googleFonts, adobeFonts }: StylesProv
     <ThemeProvider theme={Colors}>
       {fontsConfig && <FontLoader links={fontsConfig.links} />}
       {adobeConfig && <FontLoader links={adobeConfig.links} />}
+      {links && links.length > 0 && <FontLoader links={links} />}
       {children}
     </ThemeProvider>
   )
