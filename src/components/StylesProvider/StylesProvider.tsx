@@ -14,6 +14,8 @@ import {
   type AdobeFontsConfig,
 } from 'nice-styles'
 import { FontLoader } from '../FontLoader'
+import { DeviceDetectionProvider } from './DeviceContext'
+import { ThemeDetectionProvider } from './ThemeContext'
 import { ThemeProvider } from './StylesProvider.styled'
 import type { StylesProviderProps } from './StylesProvider.types'
 import 'nice-styles/tokens.css'
@@ -85,11 +87,11 @@ function useAdobeFontsConfig(
  * </StylesProvider>
  * ```
  */
-export function StylesProvider({ children, googleFonts, adobeFonts, links }: StylesProviderProps) {
+export function StylesProvider({ children, googleFonts, adobeFonts, links, detectDevice = false, detectTheme = false }: StylesProviderProps) {
   const fontsConfig = useGoogleFontsConfig(googleFonts)
   const adobeConfig = useAdobeFontsConfig(adobeFonts)
 
-  return (
+  const tree = (
     <ThemeProvider theme={Colors}>
       {fontsConfig && <FontLoader links={fontsConfig.links} />}
       {adobeConfig && <FontLoader links={adobeConfig.links} />}
@@ -97,4 +99,13 @@ export function StylesProvider({ children, googleFonts, adobeFonts, links }: Sty
       {children}
     </ThemeProvider>
   )
+
+  // Mount each detecting provider only on opt-in, so its environment listener
+  // (resize for device, prefers-color-scheme for theme) is registered solely
+  // when a consumer reads that value. Without them, useDevice() / useTheme()
+  // fall back to their inert defaults ({ isMobile: false } / { isNight: false }).
+  let result = tree
+  if (detectTheme) result = <ThemeDetectionProvider>{result}</ThemeDetectionProvider>
+  if (detectDevice) result = <DeviceDetectionProvider>{result}</DeviceDetectionProvider>
+  return result
 }

@@ -63,4 +63,48 @@ export interface StylesProviderProps {
    * ```
    */
   links?: LinkAttributes[]
+
+  /**
+   * Run device detection (via nice-react-device-detector) and publish it on the
+   * StylesProvider context, so descendants read a single shared `isMobile` with
+   * `useDevice()` instead of wiring a separate `DeviceProvider`. When false
+   * (default) no detection runs and `useDevice()` returns `{ isMobile: false }`.
+   *
+   * @default false
+   *
+   * @example
+   * ```tsx
+   * <StylesProvider detectDevice>
+   *   <App />
+   * </StylesProvider>
+   *
+   * // any descendant
+   * const { isMobile } = useDevice()
+   * ```
+   */
+  detectDevice?: boolean
+
+  /**
+   * Detect the OS color-scheme preference (`prefers-color-scheme: dark`) and
+   * publish it on the StylesProvider context, so descendants read a single
+   * shared theme name with `useTheme()` — the theme sibling of `detectDevice` /
+   * `useDevice()`. When false (default) no detection runs and `useTheme()`
+   * returns `{ theme: DEFAULT_THEME }`.
+   *
+   * Reflects the system preference, not an explicit `<Theme>` pin you apply
+   * yourself.
+   *
+   * @default false
+   *
+   * @example
+   * ```tsx
+   * <StylesProvider detectTheme>
+   *   <App />
+   * </StylesProvider>
+   *
+   * // any descendant
+   * const { theme } = useTheme()
+   * ```
+   */
+  detectTheme?: boolean
 }
