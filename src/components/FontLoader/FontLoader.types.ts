@@ -2,7 +2,7 @@
  * Type definitions for FontLoader
  */
 
-import type { LinkAttributes } from '../../types'
+import type { LinkAttributes } from 'nice-styles'
 
 /**
  * Props for FontLoader component
