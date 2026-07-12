@@ -36,7 +36,8 @@
     "@rollup/plugin-typescript": "^11.1.5",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "nice-configuration": "^1.1.0",
+    "nice-config-rollup": "file:../config-rollup",
+    "nice-config-typescript": "file:../config-typescript",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "rollup": "^4.9.1",
@@ -72,7 +73,6 @@
   },
   "homepage": "https://github.com/niceprototypes/nice-react-styles#readme",
   "dependencies": {
-    "nice-react-device-detector": "^2.1.1",
-    "nice-styles": "^13.0.0"
+    "nice-styles": "file:../styles"
   }
 }

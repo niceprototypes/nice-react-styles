@@ -1,44 +1,67 @@
 /**
  * Device context for StylesProvider
  *
- * Lets StylesProvider optionally publish device detection (via
- * nice-react-device-detector) through React context, so consumers read a single
- * shared `isMobile` with `useDevice()` instead of wiring a separate
- * DeviceProvider. Detection only runs when StylesProvider is given
+ * Lets StylesProvider optionally publish mobile detection through React context,
+ * so consumers read a single shared device state with `useDevice()`. Detection
+ * (internalized into StylesProvider) only runs when StylesProvider is given
  * `detectDevice` — otherwise `useDevice()` returns the inert default.
  */
 
 import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { useDeviceDetector } from 'nice-react-device-detector'
+import {
+  useDeviceDetection,
+  matchesMobileUserAgent,
+  MOBILE_USER_AGENTS,
+  DEVICE_DETECTION_DEFAULT,
+  type DeviceDetectionState,
+} from './useDeviceDetection'
 
 /**
  * Shape returned by `useDevice()`.
  */
-export interface DeviceContextValue {
+export interface DeviceState {
+  /** Raw `navigator.userAgent` string (empty until an ancestor StylesProvider sets `detectDevice`). */
+  userAgent: string
+  /** The user-agent substrings `isMobile` was matched against — the default list, or the one passed to `useDevice`. */
+  mobileUserAgents: readonly string[]
   /**
-   * True when the viewport / user-agent is detected as mobile. Always false
-   * unless the enclosing StylesProvider has `detectDevice` set.
+   * True when `userAgent` matches one of `mobileUserAgents`, OR when a
+   * non-user-agent mobile signal fires (touch + small screen, or the
+   * `?mobile=true` / `localStorage["debug-mobile"]` debug override). Always
+   * false unless the enclosing StylesProvider has `detectDevice` set.
    */
   isMobile: boolean
 }
 
-// Detection-off default — a StylesProvider without `detectDevice` (or no
-// provider at all) leaves useDevice() consumers reading false rather than
-// throwing. Stable reference so it never triggers a re-render.
-const DEVICE_DEFAULT: DeviceContextValue = { isMobile: false }
-
-const DeviceContext = createContext<DeviceContextValue>(DEVICE_DEFAULT)
+// The provider publishes raw detection state; useDevice derives the public
+// DeviceState from it so a per-call mobileUserAgents override is honored without
+// re-running detection. Default context is the detection-off state.
+const DeviceContext = createContext<DeviceDetectionState>(DEVICE_DETECTION_DEFAULT)
 
 /**
- * Read the device state published by StylesProvider — `{ isMobile }`.
+ * Read the device state published by StylesProvider — `{ userAgent,
+ * mobileUserAgents, isMobile }`.
  *
- * `isMobile` is false unless an ancestor StylesProvider set `detectDevice`.
- * Replaces a direct `useDevice` from nice-react-device-detector when the app
- * lets StylesProvider own detection.
+ * @param mobileUserAgents - Optional replacement for the default
+ *   `MOBILE_USER_AGENTS` list. When provided, `isMobile` is recomputed against
+ *   it (touch / small-screen / debug signals still apply). Returned verbatim as
+ *   `mobileUserAgents`.
+ *
+ * Values are inert (`userAgent: ""`, `isMobile: false`) unless an ancestor
+ * StylesProvider set `detectDevice`.
  */
-export function useDevice(): DeviceContextValue {
-  return useContext(DeviceContext)
+export function useDevice(mobileUserAgents: readonly string[] = MOBILE_USER_AGENTS): DeviceState {
+  const { userAgent, extrasMobile } = useContext(DeviceContext)
+  // Recompute only when the detection inputs or the override list change.
+  return useMemo<DeviceState>(
+    () => ({
+      userAgent,
+      mobileUserAgents,
+      isMobile: matchesMobileUserAgent(userAgent, mobileUserAgents) || extrasMobile,
+    }),
+    [userAgent, extrasMobile, mobileUserAgents]
+  )
 }
 
 /**
@@ -48,9 +71,8 @@ export function useDevice(): DeviceContextValue {
  * either mounts whole or not at all, satisfying the rules of hooks.
  */
 export function DeviceDetectionProvider({ children }: { children: ReactNode }) {
-  const isMobile = useDeviceDetector()
-  // Recompute the context value only when isMobile flips, so descendants don't
-  // re-render on unrelated StylesProvider renders.
-  const value = useMemo<DeviceContextValue>(() => ({ isMobile }), [isMobile])
-  return <DeviceContext.Provider value={value}>{children}</DeviceContext.Provider>
+  // useDeviceDetection already returns a stable reference until the state flips,
+  // so descendants don't re-render on unrelated StylesProvider renders.
+  const state = useDeviceDetection()
+  return <DeviceContext.Provider value={state}>{children}</DeviceContext.Provider>
 }

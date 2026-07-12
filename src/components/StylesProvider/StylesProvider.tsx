@@ -103,7 +103,7 @@ export function StylesProvider({ children, googleFonts, adobeFonts, links, detec
   // Mount each detecting provider only on opt-in, so its environment listener
   // (resize for device, prefers-color-scheme for theme) is registered solely
   // when a consumer reads that value. Without them, useDevice() / useTheme()
-  // fall back to their inert defaults ({ isMobile: false } / { isNight: false }).
+  // fall back to their inert defaults (isMobile: false / theme: DEFAULT_THEME).
   let result = tree
   if (detectTheme) result = <ThemeDetectionProvider>{result}</ThemeDetectionProvider>
   if (detectDevice) result = <DeviceDetectionProvider>{result}</DeviceDetectionProvider>

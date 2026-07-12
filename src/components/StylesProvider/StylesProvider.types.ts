@@ -65,10 +65,10 @@ export interface StylesProviderProps {
   links?: LinkAttributes[]
 
   /**
-   * Run device detection (via nice-react-device-detector) and publish it on the
-   * StylesProvider context, so descendants read a single shared `isMobile` with
-   * `useDevice()` instead of wiring a separate `DeviceProvider`. When false
-   * (default) no detection runs and `useDevice()` returns `{ isMobile: false }`.
+   * Run mobile detection and publish it on the StylesProvider context, so
+   * descendants read a single shared device state with `useDevice()`. When
+   * false (default) no detection runs and `useDevice()` returns the inert
+   * default (`{ userAgent: "", mobileUserAgents: MOBILE_USER_AGENTS, isMobile: false }`).
    *
    * @default false
    *
@@ -80,6 +80,9 @@ export interface StylesProviderProps {
    *
    * // any descendant
    * const { isMobile } = useDevice()
+   *
+   * // override the user-agent list for this call
+   * const { isMobile } = useDevice([...MOBILE_USER_AGENTS, "MyKiosk"])
    * ```
    */
   detectDevice?: boolean

@@ -1,5 +1,5 @@
 {
-  "extends": "nice-configuration/typescript/react",
+  "extends": "nice-config-typescript/react",
   "compilerOptions": {
     "outDir": "dist",
     "declarationDir": "dist/types"

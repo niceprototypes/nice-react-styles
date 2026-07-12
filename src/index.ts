@@ -3,8 +3,8 @@
  * React provider component for nice-styles CSS variables with styled-components theme support
  */
 
-export { StylesProvider, useDevice, useTheme } from './components/StylesProvider'
-export type { DeviceContextValue, ThemeContextValue } from './components/StylesProvider'
+export { StylesProvider, useDevice, useTheme, MOBILE_USER_AGENTS } from './components/StylesProvider'
+export type { DeviceState, ThemeContextValue } from './components/StylesProvider'
 export { Theme } from './components/Theme'
 export type { ThemeProps } from './components/Theme'
 
