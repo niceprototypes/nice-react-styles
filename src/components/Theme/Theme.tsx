@@ -38,9 +38,9 @@ export interface ThemeProps {
  *
  * @example
  * <Theme name="day">
- *   <Typography>day text</Typography>
+ *   <Ink>day text</Ink>
  *   <Theme name="night">
- *     <Typography>night text inside day region</Typography>
+ *     <Ink>night text inside day region</Ink>
  *   </Theme>
  * </Theme>
  */
