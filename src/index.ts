@@ -89,7 +89,7 @@ export type {
   BorderRadiusType,
   BorderWidthType,
   BoxShadowType,
-  CellHeightType,
+  SizeType,
   ColorType,
   FontFamilyType,
   FontSizeType,
