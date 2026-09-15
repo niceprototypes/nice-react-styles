@@ -3,38 +3,42 @@ import {
   injectTokenCSS,
   type TokenMap,
   type ThemeValue,
+  type BreakpointValues,
 } from "nice-styles"
 
 type TokenMapWithThemes = Record<string, Record<string, string | number | ThemeValue>>
+
+/** Reserved `breakpoints` key: pixel floors for the settable breakpoints. */
+type BreakpointsKey = { breakpoints?: Partial<BreakpointValues> }
 
 /**
  * React wrapper around `generateTokenCSS` from nice-styles. Builds the token
  * CSS string and injects it into a shared `<style data-nice-tokens>` element.
  *
  * Top-level keys of the token map are auto-classified by `generateTokenCSS`:
- * - Known component prefixes (`button`, `icon`, `tile`, …) → 3-level component
- *   token overrides.
+ * - `breakpoints` → breakpoint thresholds in pixels (`tablet`, `laptop`,
+ *   `desktop`; ascending). Applied before the rest of the map, so breakpoint
+ *   values in the same call use them; updates `getBreakpoint`,
+ *   `getBreakpointValue`, and `useBreakpoint`; and re-emits every earlier
+ *   `setTokens` stylesheet at the new thresholds. Invalid values throw.
+ * - Known component prefixes (`button`, `icon`, `tile`, …) → component token
+ *   overrides.
  * - Everything else → flat tokens registered into the unified registry.
  *
- * Breakpoint thresholds are not part of a token map — call `setBreakpoints`
- * first; a `breakpoints` key here is ignored with a console warning.
- *
- * @param tokenMap - Object mapping token names to variant → value objects.
+ * @param tokenMap - Object mapping token names to variant → value objects, plus an optional `breakpoints` key.
  * @param prefix - Optional component prefix for the CSS variable namespace.
- * @param options.colorSchemeEnabled - When true, emits
- *   `@media (prefers-color-scheme: dark)` for automatic dark-theme switching.
  *
  * @example
  * setTokens({
- *   fontSize: { base: "20px" },
+ *   breakpoints: { laptop: 1100 },
+ *   fontSize: { base: { phone: "16px", "laptop+": "20px" } },
  *   brandColor: { primary: { day: "#dc0000", night: "#ff6666" } },
  * })
  */
-export function setTokens<T extends TokenMap | TokenMapWithThemes>(
+export function setTokens<T extends (TokenMap | TokenMapWithThemes) & BreakpointsKey>(
   tokenMap: T,
-  prefix?: string,
-  options?: { colorSchemeEnabled?: boolean }
+  prefix?: string
 ): void {
-  const css = generateTokenCSS(tokenMap, prefix, options)
+  const css = generateTokenCSS(tokenMap, prefix)
   injectTokenCSS(prefix ?? "", css)
 }

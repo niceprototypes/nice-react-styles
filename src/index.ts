@@ -19,7 +19,6 @@ export {
   getToken,
   getBreakpoint,
   getBreakpointValue,
-  setBreakpoints,
   getConstant,
   getConstantKey,
   applyTheme,
