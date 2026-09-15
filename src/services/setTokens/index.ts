@@ -14,9 +14,10 @@ type TokenMapWithThemes = Record<string, Record<string, string | number | ThemeV
  * Top-level keys of the token map are auto-classified by `generateTokenCSS`:
  * - Known component prefixes (`button`, `icon`, `tile`, …) → 3-level component
  *   token overrides.
- * - The literal key `breakpoints` → runtime breakpoint-threshold overrides,
- *   forwarded to `setBreakpoints`.
  * - Everything else → flat tokens registered into the unified registry.
+ *
+ * Breakpoint thresholds are not part of a token map — call `setBreakpoints`
+ * first; a `breakpoints` key here is ignored with a console warning.
  *
  * @param tokenMap - Object mapping token names to variant → value objects.
  * @param prefix - Optional component prefix for the CSS variable namespace.
@@ -27,7 +28,6 @@ type TokenMapWithThemes = Record<string, Record<string, string | number | ThemeV
  * setTokens({
  *   fontSize: { base: "20px" },
  *   brandColor: { primary: { day: "#dc0000", night: "#ff6666" } },
- *   breakpoints: { laptop: 1100, desktop: 1800 },
  * })
  */
 export function setTokens<T extends TokenMap | TokenMapWithThemes>(
