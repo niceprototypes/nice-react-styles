@@ -1,6 +1,6 @@
 # nice-react-styles
 
-React provider component for [nice-styles](https://github.com/niceprototypes/nice-styles) CSS variables.
+React bindings for [nice-styles](../styles): the `StylesProvider` and `Theme` components, `setTokens`, breakpoint hooks, and a re-export of the nice-styles token API — so a React app imports from one package.
 
 ## Installation
 
@@ -8,97 +8,87 @@ React provider component for [nice-styles](https://github.com/niceprototypes/nic
 npm install nice-styles nice-react-styles
 ```
 
-Both packages are required: `nice-styles` provides the CSS variables, and `nice-react-styles` provides the React wrapper component.
+Peer dependencies: `react` and `react-dom` 19.2+, `styled-components` 6.1.18+.
 
-## Usage
+## Setup
 
-Wrap your application (or any part of your component tree) with the `StylesProvider` component:
+Import the generated CSS once, set your tokens at module load, and wrap the app:
+
+```ts
+// src/nice/tokens.ts
+import { setTokens } from "nice-react-styles"
+
+setTokens({
+  breakpoints: { laptop: 1100 },                                // thresholds (optional)
+  fontSize: { base: "18px", jumbo: "96px" },                    // override + custom variant
+  brandColor: { primary: { day: "#dc0000", night: "#ff6666" } }, // themed custom token
+  gap: { base: { phone: "12px", "laptop+": "20px" } },          // responsive value
+})
+```
 
 ```tsx
-import { StylesProvider } from 'nice-react-styles'
+// src/index.tsx
+import "nice-styles/tokens.css"
+import "./nice/tokens"
+import { StylesProvider } from "nice-react-styles"
 
-function App() {
-  return (
-    <StylesProvider>
-      <YourComponents />
-    </StylesProvider>
-  )
-}
+root.render(
+  <StylesProvider>
+    <App />
+  </StylesProvider>
+)
 ```
 
-### Using CSS Variables
+`setTokens` registers every token in the shared registry (so `getToken` sees it) and injects CSS with the same shape as `tokens.css`: semantic variables, `@media` breakpoint blocks, and theme switching through `prefers-color-scheme` and `[data-theme]`.
 
-Once wrapped with `StylesProvider`, all child components can reference nice-styles CSS variables:
+## Reading tokens
 
 ```tsx
-function MyComponent() {
-  return (
-    <div
-      style={{
-        backgroundColor: 'var(--background-color-base)',
-        color: 'var(--content-color-base)',
-        padding: 'var(--gap-size-medium)',
-        borderRadius: 'var(--border-radius-base)',
-        fontFamily: 'var(--font-family-base)',
-      }}
-    >
-      Hello World
-    </div>
-  )
-}
+import styled from "styled-components"
+import { getToken, getBreakpoint } from "nice-react-styles"
+
+const Card = styled.div`
+  padding: ${getToken("gap")};                               /* var(--np--gap) */
+  color: ${getToken("brandColor", "primary")};               /* var(--np--brand-color--primary) */
+
+  ${getBreakpoint("laptop+")} {
+    padding: ${getToken("gap", "large")};
+  }
+`
+
+getToken("gap", "base", { as: "value" })                     // "16px"
+getToken("color", "base", { theme: "night" })                // "var(--np--color--night)"
+getToken("button.icon.size:small")                           // component token
 ```
 
-Or in CSS/styled-components:
-
-```css
-.my-component {
-  background-color: var(--background-color-base);
-  color: var(--content-color-base);
-  padding: var(--gap-size-medium);
-  border-radius: var(--border-radius-base);
-  font-family: var(--font-family-base);
-}
-```
-
-### Custom Styling
-
-You can pass additional props to customize the provider wrapper:
-
-```tsx
-<StylesProvider
-  className="custom-class"
-  style={{
-    '--custom-variable': 'value',
-    padding: '20px'
-  }}
->
-  <YourComponents />
-</StylesProvider>
-```
+`getToken` is the single getter for every token kind; `listTokens` enumerates them (`listTokens({ prefix: "button" })`). See the nice-styles README for options.
 
 ## API
 
-### `StylesProvider`
+### Components
 
-A wrapper component that ensures nice-styles CSS variables are available in the component tree.
+| Export | Purpose |
+|---|---|
+| `StylesProvider` | Root provider. Props: `googleFonts`, `adobeFonts`, `links` (font loading), `detectDevice` (enables `useDevice`), `detectTheme` (enables `useTheme`). |
+| `Theme` | Pins a subtree to a theme: `<Theme name="night">…</Theme>` renders `data-theme="night"`, and every token below follows it. |
 
-#### Props
+### Services and hooks
 
-- `children: ReactNode` - Child components that will have access to CSS variables
-- `className?: string` - Optional className to apply to the wrapper div
-- `style?: React.CSSProperties` - Optional style object for custom CSS variable overrides
+| Export | Purpose |
+|---|---|
+| `setTokens(tokenMap, prefix?)` | Register tokens and inject their CSS. Reserved `breakpoints` key sets `tablet` / `laptop` / `desktop` floors in pixels. |
+| `withBreakpoints(Component, defaults?)` | Adds a `breakpoints` prop of per-breakpoint prop overrides: `breakpoints={{ "laptop+": { spacing: "large" } }}`. Most specific matching key wins. |
+| `useBreakpoint()` | Current breakpoint name (`phone` / `tablet` / `laptop` / `desktop`), updated on resize. |
+| `useDevice()` | `{ isMobile, userAgent, mobileUserAgents }` when `StylesProvider detectDevice` is set. |
+| `useTheme()` | `{ theme }` from the OS color-scheme preference when `StylesProvider detectTheme` is set. |
 
-## Why Separate Packages?
+### Re-exported from nice-styles
 
-Following the pattern of Tailwind CSS + Headless UI:
-- **nice-styles**: Pure CSS package, framework-agnostic, zero dependencies
-- **nice-react-styles**: React-specific wrapper for enhanced DX
+`getToken`, `listTokens`, `registry`, `registerTokens`, `getConstant`, `getConstantKey`, `getBreakpoint`, `getBreakpointValue`, `applyTheme`, `transformColor`, `getTextHeight`, `isStyleValue`, `parseGoogleFontsUrl`, `parseAdobeFontsUrl`, the breakpoint constants (`BREAKPOINTS`, `BREAKPOINT_ORDER`, `SETTABLE_BREAKPOINTS`, …), and the token and style-value types.
 
-This keeps the CSS layer lightweight and usable with any framework (Vue, Angular, Svelte, etc.), while providing React users with an ergonomic component-based API.
+## Breakpoint keys
 
-## Available CSS Variables
-
-See the [nice-styles documentation](https://github.com/niceprototypes/nice-styles#available-variables) for the complete list of available CSS variables.
+A bare name is one band (`tablet`); `+` covers that breakpoint and wider (`tablet+`); `-` covers it and narrower (`tablet-`). The same keys work in `setTokens` values, `withBreakpoints` overrides, and `getBreakpoint`.
 
 ## License
 

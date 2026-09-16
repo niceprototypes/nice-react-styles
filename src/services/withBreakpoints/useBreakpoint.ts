@@ -2,9 +2,7 @@ import { useSyncExternalStore } from "react"
 import {
   BREAKPOINTS,
   BREAKPOINT_PHONE,
-  BREAKPOINT_TABLET,
-  BREAKPOINT_LAPTOP,
-  BREAKPOINT_DESKTOP,
+  SETTABLE_BREAKPOINTS,
   type BreakpointName,
 } from "nice-styles"
 
@@ -17,10 +15,11 @@ import {
 const getCurrent = (): BreakpointName => {
   if (typeof window === "undefined") return BREAKPOINT_PHONE
   const width = window.innerWidth
-  if (width >= BREAKPOINTS[BREAKPOINT_DESKTOP]) return BREAKPOINT_DESKTOP
-  if (width >= BREAKPOINTS[BREAKPOINT_LAPTOP]) return BREAKPOINT_LAPTOP
-  if (width >= BREAKPOINTS[BREAKPOINT_TABLET]) return BREAKPOINT_TABLET
-  // Below the tablet floor is the phone base.
+  // Widest settable floor the viewport reaches, checked largest first
+  for (let i = SETTABLE_BREAKPOINTS.length - 1; i >= 0; i--) {
+    if (width >= BREAKPOINTS[SETTABLE_BREAKPOINTS[i]]) return SETTABLE_BREAKPOINTS[i]
+  }
+  // Below the first settable floor is the phone base.
   return BREAKPOINT_PHONE
 }
 

@@ -42,3 +42,19 @@ export function setTokens<T extends (TokenMap | TokenMapWithThemes) & Breakpoint
   const css = generateTokenCSS(tokenMap, prefix)
   injectTokenCSS(prefix ?? "", css)
 }
+
+/**
+ * Shortcut for `setTokens({ breakpoints })` — sets the settable breakpoint
+ * floors in pixels (`tablet`, `laptop`, `desktop`; ascending) and re-emits every
+ * earlier `setTokens` stylesheet at the new thresholds, updating `getBreakpoint`,
+ * `getBreakpointValue`, and `useBreakpoint`. `phone` is the immutable base.
+ * Invalid values throw (same validation as the `breakpoints` key).
+ *
+ * @param breakpoints - Partial map of settable breakpoint floors in pixels.
+ *
+ * @example
+ * setBreakpoints({ laptop: 1100, desktop: 1800 })
+ */
+export function setBreakpoints(breakpoints: Partial<BreakpointValues>): void {
+  setTokens({ breakpoints })
+}

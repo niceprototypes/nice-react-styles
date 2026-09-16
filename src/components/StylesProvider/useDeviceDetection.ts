@@ -51,6 +51,10 @@ export const DEVICE_DETECTION_DEFAULT: DeviceDetectionState = {
 /**
  * True when `userAgent` contains any entry of `mobileUserAgents` (matched
  * case-insensitively). Empty UA or empty list can never match.
+ *
+ * @param userAgent - Raw user-agent string
+ * @param mobileUserAgents - Substrings that flag a mobile device
+ * @returns Whether any substring occurs in `userAgent`
  */
 export function matchesMobileUserAgent(
   userAgent: string,
@@ -60,7 +64,11 @@ export function matchesMobileUserAgent(
   return new RegExp(mobileUserAgents.join('|'), 'i').test(userAgent)
 }
 
-/** Read the current UA string, SSR-safe (`''` when there is no navigator). */
+/**
+ * Read the current UA string, SSR-safe.
+ *
+ * @returns `navigator.userAgent`, or `''` when there is no navigator
+ */
 function readUserAgent(): string {
   if (typeof window === 'undefined' || typeof window.navigator === 'undefined') return ''
   return navigator.userAgent
@@ -72,6 +80,8 @@ function readUserAgent(): string {
  * device on a small screen (which also catches Chrome DevTools mobile
  * emulation). Kept separate from the UA match so a caller-supplied
  * `mobileUserAgents` list overrides only the UA dimension, never these.
+ *
+ * @returns Whether a debug override or touch + small screen flags mobile
  */
 function detectExtrasMobile(): boolean {
   if (typeof window === 'undefined') return false
@@ -82,6 +92,7 @@ function detectExtrasMobile(): boolean {
     new URLSearchParams(window.location.search).get('mobile') === 'true'
   if (debugMobile) return true
 
+  // Touch + phone-width viewport — both required, so a narrow desktop window is not mobile
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   const smallScreen = window.innerWidth <= MOBILE_MAX_WIDTH
   return hasTouch && smallScreen
@@ -93,11 +104,15 @@ function detectExtrasMobile(): boolean {
  * `detectDevice` is set (via `DeviceDetectionProvider`), so it is never called
  * conditionally and the resize listener is paid for solely on opt-in. SSR-safe:
  * detection runs in an effect, so the server snapshot is the inert default.
+ *
+ * @returns The current detection state; the inert default until the first effect runs
  */
 export function useDeviceDetection(): DeviceDetectionState {
+  // Start inert so server and first client render match
   const [state, setState] = useState<DeviceDetectionState>(DEVICE_DETECTION_DEFAULT)
 
   useEffect(() => {
+    // Recompute both signals from the live browser state
     const update = () => {
       const next: DeviceDetectionState = {
         userAgent: readUserAgent(),
@@ -112,6 +127,7 @@ export function useDeviceDetection(): DeviceDetectionState {
       )
     }
     update() // initial detection on mount (client-only)
+    // Resize also fires on orientation change and DevTools device emulation; removed on unmount
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
