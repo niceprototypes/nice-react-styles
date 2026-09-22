@@ -1,6 +1,6 @@
 # nice-react-styles
 
-React bindings for [nice-styles](../styles): the `StylesProvider` and `Theme` components, `setTokens`, breakpoint hooks, and a re-export of the nice-styles token API — so a React app imports from one package.
+React bindings for [nice-styles](https://github.com/niceprototypes/nice-styles): the `StylesProvider` and `Theme` components, `setTokens`, breakpoint hooks, and a re-export of the nice-styles token API — so a React app imports from one package.
 
 ## Installation
 
