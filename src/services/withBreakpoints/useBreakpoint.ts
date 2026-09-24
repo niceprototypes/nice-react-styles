@@ -23,10 +23,30 @@ const getCurrent = (): BreakpointName => {
   return BREAKPOINT_PHONE
 }
 
-const subscribe = (onChange: () => void): (() => void) => {
+// Every useBreakpoint caller shares one window resize listener. It is attached
+// when the first subscriber arrives and removed when the last one leaves.
+const listeners = new Set<() => void>()
+
+/** Notify every subscriber of a resize. */
+const handleResize = (): void => {
+  listeners.forEach((listener) => listener())
+}
+
+/**
+ * Module-scope `useSyncExternalStore` subscribe — stable identity across all
+ * callers. Exported for tests only; not part of the package API.
+ *
+ * @param onChange - Callback React passes per subscription
+ * @returns Unsubscribe function
+ */
+export const subscribe = (onChange: () => void): (() => void) => {
   if (typeof window === "undefined") return () => {}
-  window.addEventListener("resize", onChange)
-  return () => window.removeEventListener("resize", onChange)
+  listeners.add(onChange)
+  if (listeners.size === 1) window.addEventListener("resize", handleResize)
+  return () => {
+    listeners.delete(onChange)
+    if (listeners.size === 0) window.removeEventListener("resize", handleResize)
+  }
 }
 
 /**
