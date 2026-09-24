@@ -14,3 +14,7 @@ export { MOBILE_USER_AGENTS } from './useDeviceDetection'
 // OS color-scheme detection — read with useTheme when `detectTheme` is set
 export { useTheme } from './ThemeContext'
 export type { ThemeContextValue } from './ThemeContext'
+
+// Locale and text direction — explicit `locale` / `dir` props, else document / navigator
+export { useLocale } from './LocaleContext'
+export type { LocaleCodeType, LocaleDirectionType, LocaleValueType } from './LocaleContext'

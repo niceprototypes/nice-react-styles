@@ -16,6 +16,7 @@ import {
 import { FontLoader } from '../FontLoader'
 import { DeviceDetectionProvider } from './DeviceContext'
 import { ThemeDetectionProvider } from './ThemeContext'
+import { LocaleContextProvider } from './LocaleContext'
 import { ThemeProvider } from './StylesProvider.styled'
 import type { StylesProviderProps } from './StylesProvider.types'
 import 'nice-styles/tokens.css'
@@ -87,7 +88,7 @@ function useAdobeFontsConfig(
  * </StylesProvider>
  * ```
  */
-export function StylesProvider({ children, googleFonts, adobeFonts, links, detectDevice = false, detectTheme = false }: StylesProviderProps) {
+export function StylesProvider({ children, googleFonts, adobeFonts, links, detectDevice = false, detectTheme = false, locale, dir }: StylesProviderProps) {
   const fontsConfig = useGoogleFontsConfig(googleFonts)
   const adobeConfig = useAdobeFontsConfig(adobeFonts)
 
@@ -105,6 +106,11 @@ export function StylesProvider({ children, googleFonts, adobeFonts, links, detec
   // when a consumer reads that value. Without them, useDevice() / useTheme()
   // fall back to their inert defaults (isMobile: false / theme: DEFAULT_THEME).
   let result = tree
+  // Publish explicit locale / dir only when given, so a nested StylesProvider
+  // without them does not shadow an ancestor's values. No DOM attribute is set.
+  if (locale !== undefined || dir !== undefined) {
+    result = <LocaleContextProvider locale={locale} dir={dir}>{result}</LocaleContextProvider>
+  }
   if (detectTheme) result = <ThemeDetectionProvider>{result}</ThemeDetectionProvider>
   if (detectDevice) result = <DeviceDetectionProvider>{result}</DeviceDetectionProvider>
   return result

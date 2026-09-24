@@ -8,8 +8,14 @@
  */
 
 // Components and their context hooks
-export { StylesProvider, useDevice, useTheme, MOBILE_USER_AGENTS } from './components/StylesProvider'
-export type { DeviceState, ThemeContextValue } from './components/StylesProvider'
+export { StylesProvider, useDevice, useTheme, useLocale, MOBILE_USER_AGENTS } from './components/StylesProvider'
+export type {
+  DeviceState,
+  ThemeContextValue,
+  LocaleCodeType,
+  LocaleDirectionType,
+  LocaleValueType,
+} from './components/StylesProvider'
 export { Theme } from './components/Theme'
 export type { ThemeProps } from './components/Theme'
 

@@ -4,6 +4,7 @@
 
 import type { ReactNode } from 'react'
 import type { GoogleFontsConfig, AdobeFontsConfig, LinkAttributes } from 'nice-styles'
+import type { LocaleCodeType, LocaleDirectionType } from './LocaleContext'
 
 /**
  * Props for the StylesProvider component
@@ -110,4 +111,31 @@ export interface StylesProviderProps {
    * ```
    */
   detectTheme?: boolean
+
+  /**
+   * Locale published to descendants through `useLocale()`. When absent,
+   * `useLocale()` reads `document.documentElement.lang`, then
+   * `navigator.language`, then falls back to "en".
+   *
+   * Does not set `lang` on any element — document language is markup the
+   * consumer owns.
+   *
+   * @example
+   * ```tsx
+   * <StylesProvider locale="ar-EG">
+   *   <App />
+   * </StylesProvider>
+   * ```
+   */
+  locale?: LocaleCodeType
+
+  /**
+   * Text direction published to descendants through `useLocale()`. When
+   * absent, it is taken from `document.documentElement.dir` (only when
+   * `locale` is also absent), else derived from the resolved locale.
+   *
+   * Does not set `dir` on any element — base direction is markup the consumer
+   * owns (W3C: never apply base direction with CSS).
+   */
+  dir?: LocaleDirectionType
 }
