@@ -13,3 +13,4 @@
 [2026-09-16 16:21] minor: Re-export resolveColorProp, ColorTokenProp, ColorPropObject, ChannelValue
 [2026-09-24 18:07] minor: Add useLocale hook and StylesProvider locale / dir props exposing locale and text direction to JavaScript
 [2026-09-24 18:08] patch: Share one window resize listener across all useBreakpoint / withBreakpoints subscribers
+[2026-09-24 19:04] minor: Re-export TokenAddress, TokenGroup, TokenVariants, TokenInverseVariants and CustomTokenVariants from nice-styles, so custom token groups can be declared through either module

@@ -63,6 +63,24 @@ getToken("button.icon.size:small")                           // component token
 
 `getToken` is the single getter for every token kind; `listTokens` enumerates them (`listTokens({ prefix: "button" })`). See the nice-styles README for options.
 
+### Typing custom tokens
+
+`getToken` accepts only declared groups and variants (`TokenAddress`, `TokenVariants`), so a group added with `setTokens` (`brandColor` above) must be declared on the `CustomTokenVariants` interface. Augment it on `"nice-styles"`, where the interface is declared:
+
+```ts
+import { setTokens } from "nice-react-styles"
+
+declare module "nice-styles" {
+  interface CustomTokenVariants {
+    brandColor: "primary"
+  }
+}
+
+setTokens({ brandColor: { primary: "#dc0000" } })
+```
+
+`declare module "nice-react-styles"` also merges, because nice-react-styles re-exports `CustomTokenVariants` from nice-styles; before that re-export (nice-react-styles 15.0.1 and earlier) it declared an unrelated interface and `getToken` still rejected the group, with no error on the declaration. `"nice-styles"` works with every version.
+
 ## API
 
 ### Components
@@ -84,7 +102,7 @@ getToken("button.icon.size:small")                           // component token
 
 ### Re-exported from nice-styles
 
-`getToken`, `listTokens`, `registry`, `registerTokens`, `getConstant`, `getConstantKey`, `getBreakpoint`, `getBreakpointValue`, `applyTheme`, `transformColor`, `getTextHeight`, `isStyleValue`, `parseGoogleFontsUrl`, `parseAdobeFontsUrl`, the breakpoint constants (`BREAKPOINTS`, `BREAKPOINT_ORDER`, `SETTABLE_BREAKPOINTS`, …), and the token and style-value types.
+`getToken`, `listTokens`, `registry`, `registerTokens`, `getConstant`, `getConstantKey`, `getBreakpoint`, `getBreakpointValue`, `applyTheme`, `transformColor`, `getTextHeight`, `isStyleValue`, `parseGoogleFontsUrl`, `parseAdobeFontsUrl`, the breakpoint constants (`BREAKPOINTS`, `BREAKPOINT_ORDER`, `SETTABLE_BREAKPOINTS`, …), and the token and style-value types, including `TokenAddress`, `TokenGroup`, `TokenVariants`, `TokenInverseVariants`, and `CustomTokenVariants`.
 
 ## Breakpoint keys
 

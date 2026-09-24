@@ -117,6 +117,13 @@ export type {
   GapType,
   LetterSpacingType,
   LineHeightType,
+  // Token address and variant maps (typed getToken)
+  TokenAddress,
+  TokenGroup,
+  TokenVariants,
+  TokenInverseVariants,
+  // Declaration-merging hook — augment it on "nice-styles", see README
+  CustomTokenVariants,
   // Layout types
   SpacingShorthandType,
   SpacingDefinitionType,
