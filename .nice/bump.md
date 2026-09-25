@@ -14,3 +14,4 @@
 [2026-09-24 18:07] minor: Add useLocale hook and StylesProvider locale / dir props exposing locale and text direction to JavaScript
 [2026-09-24 18:08] patch: Share one window resize listener across all useBreakpoint / withBreakpoints subscribers
 [2026-09-24 19:04] minor: Re-export TokenAddress, TokenGroup, TokenVariants, TokenInverseVariants and CustomTokenVariants from nice-styles, so custom token groups can be declared through either module
+[2026-09-25 19:09] patch: Declare nice-* runtime packages as peer dependencies with a file: devDependency for local builds
