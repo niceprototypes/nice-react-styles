@@ -1,12 +1,12 @@
 import {
   generateTokenCSS,
+  getToken,
   injectTokenCSS,
   type TokenMap,
-  type ThemeValue,
+  type RuntimeTokenMap,
   type BreakpointValues,
 } from "nice-styles"
-
-type TokenMapWithThemes = Record<string, Record<string, string | number | ThemeValue>>
+import type { SetTokensVariants, TypedGetToken } from "./setTokens.types"
 
 /** Reserved `breakpoints` key: pixel floors for the settable breakpoints. */
 type BreakpointsKey = { breakpoints?: Partial<BreakpointValues> }
@@ -25,22 +25,32 @@ type BreakpointsKey = { breakpoints?: Partial<BreakpointValues> }
  *   overrides.
  * - Everything else → flat tokens registered into the unified registry.
  *
+ * Returns `getToken`, typed for the core tokens plus this map's groups and variants, so a
+ * consumer exports it and reads its own tokens with no type declarations. Each call replaces
+ * the previous map for the same prefix; combine maps with a spread into one call.
+ *
  * @param tokenMap - Object mapping token names to variant → value objects, plus an optional `breakpoints` key.
  * @param prefix - Optional component prefix for the CSS variable namespace.
+ * @returns `getToken`, typed for this map
  *
  * @example
- * setTokens({
+ * export const getToken = setTokens({
  *   breakpoints: { laptop: 1100 },
  *   fontSize: { base: { phone: "16px", "laptop+": "20px" } },
  *   brandColor: { primary: { day: "#dc0000", night: "#ff6666" } },
  * })
+ *
+ * getToken("brandColor", "primary")
  */
-export function setTokens<T extends (TokenMap | TokenMapWithThemes) & BreakpointsKey>(
-  tokenMap: T,
-  prefix?: string
-): void {
+export function setTokens<
+  T extends (TokenMap | RuntimeTokenMap) & BreakpointsKey,
+  P extends string = never,
+>(tokenMap: T, prefix?: P): TypedGetToken<SetTokensVariants<T, P>> {
   const css = generateTokenCSS(tokenMap, prefix)
   injectTokenCSS(prefix ?? "", css)
+  // The registry now holds this map's tokens; only the getter's type widens. Through
+  // `unknown`: comparing the core address union to the generic one is too large for tsc
+  return getToken as unknown as TypedGetToken<SetTokensVariants<T, P>>
 }
 
 /**
